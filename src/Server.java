@@ -59,7 +59,14 @@ public class Server{
 	private void keeo_beat(){
 
 	}
-	public static void main(String argv[]) throws Exception{
+
+    /**
+     *deal with deciding which action to take according to the message
+     */
+	public int action(String message){
+
+    }
+    public static void main(String argv[]) throws Exception{
 		
 		String clientSentence;
 
