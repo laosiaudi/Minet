@@ -56,7 +56,7 @@ public class Server{
 	/**
 	*deal with user heart-beat
 	*/
-	private void keeo_beat(){
+	private void keep_beat(){
 
 	}
 
@@ -64,7 +64,7 @@ public class Server{
      *deal with deciding which action to take according to the message
      */
 	public int action(String message){
-
+        
     }
     public static void main(String argv[]) throws Exception{
 		
