@@ -12,3 +12,8 @@ ServerTest.java  ClientTest.java为简单的cs模型demo，
 Linux下: terminal1--sh testServer.sh  
          terminal2--sh testClient.sh  
 Windows: 双击ClientWin.bat Server.bat
+  
+  
+  log:  
+ 2013-11-28 服务端和客户端demo上传  
+ 2013-11-29 15:35: 多线程模型上传
