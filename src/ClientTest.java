@@ -7,14 +7,16 @@ class ClientTest{
 		String modifiedSentence;
 		while (true){
 			BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-			Socket clientSocket = new Socket("172.18.158.231",6789);
+			Socket clientSocket = new Socket("127.0.0.1",6788);
 			DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
 			BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			sentence = inFromUser.readLine();
-			outToServer.writeBytes(sentence + '\n');
+			//sentence = "minet lll \ndddd dddd\n";
+            outToServer.writeBytes(sentence + '\n');
 			//modifiedSentence = inFromServer.readLine();
 			//System.out.println("From Server: " + modifiedSentence);
-			//clientSocket.close();
+		    ///clientSocket.close();
+		    
 		}
 	}
 }
