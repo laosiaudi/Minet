@@ -16,5 +16,5 @@ Windows: 双击ClientWin.bat Server.bat
   
 ===  
   **LOG**:  
- 2013-11-28 服务端和客户端demo上传  
- 2013-11-29 15:35: 多线程模型上传
+ 2013-11-28 服务端和客户端demo上传by Lao Si   
+ 2013-11-29 15:35: 多线程模型上传by Lao Si  
