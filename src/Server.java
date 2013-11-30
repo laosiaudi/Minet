@@ -7,13 +7,14 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class Server{
-    Map<String, String> userlist = new HashMap<String, String>();
-    String Status = "";
+    Map<String, String> userlist = new HashMap<String, String>();//key :username value:ip,port
+    Map<String,Socket> onlineSocket = new HashMap<String,Socket>();
+    //String Status = "";
 	//ArrayList<String>userlist = new ArrayList<String>();
 	/**
 	*used to handshake, just to send handshake message
 	*/
-	private void handshake(String clientSentence){
+	private void handshake(String clientSentence){//debugged
         Status = "";
 
         Status = clientSentence.replace("MINET", "MIRO");
@@ -22,7 +23,8 @@ public class Server{
 	/**
 	*used to deal with user log in
 	*/
-	private void user_log_in(String inFromClient, Socket connectionSocket){
+	private String user_log_in(String inFromClient, Socket connectionSocket){
+        String Status = "";
         String []options = inFromClient.split(" ");
         
         String User_Name = options[2].split("\n\r")[0];
@@ -53,10 +55,12 @@ public class Server{
               String Header_Line = "Date" + " " + DateStr + "Content-Length" + " " + Content_Length + "\n\r";
 
               Status += Request_Line + Header_Line + "\n\r" + Entity_Body;
+              return Status;
         }
            // return false;
         else {
             userlist.put(User_Name, User_Info);
+            onlineSocket.put(User_Name,connectionSocket);
             String Request_Line = "CS1.0" + " " + "STATUS" + " " + "1" + "\n\r";
 
             /**
@@ -78,6 +82,7 @@ public class Server{
             Status = Request_Line + Header_Line + "\n\r" + Entity_Body;
 
             System.out.println(Status);
+            return Status;
             
         }
 
@@ -87,8 +92,8 @@ public class Server{
 	/**
 	*deal with send online userlist to user
 	*/
-	private void send_list(){
-        Status  = "";
+	private String send_list(){
+        String Status  = "";
         String Request_Line = "CS1.0" + " " + "LIST" + "\n\r";
 
         String Entity_Body = "";
@@ -111,14 +116,14 @@ public class Server{
 
         String Header_Line = "Date" + " " + DateStr + "Content-Length" + Content_Length + "\n\r";
         Status = Request_Line + Header_Line + "\n\r" + Entity_Body;
-
+        return Status;
 	}
 
 	/**
 	*send new_user_status to other users
 	*/
-	private void update_user_list(String Name, int i){
-        Status = "";
+	private String  update_user_list(String Name, int i){
+        String Status = "";
 
         String Request_Line = "";
 
@@ -136,19 +141,29 @@ public class Server{
             Request_Line = "CS1.0" + " " + "UPDATE" + " " + "1" + " " + Name + "\n\r";
 
         Status += Request_Line + Header_Line + Entity_Body;
+        return Status;
     }
 
-    private void get_list() {
+    private void update_user_list_onlineUsers(String Status) {
+       Iterator iter = onlineSocket.entrySet().iterator();
+       while (iter.hasNext()){
+            Map.Entry entry = (Map.Entry)iter.next();
+            Socket _socket = entry.getValue();
+            DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
+            outToClient.writeBytes(Status + '\n');
+       }
+
     }
 
 	/**
 	*deal with user log out
 	*/
-	private void user_log_out(String clientSentence){
+	private String  user_log_out(String clientSentence){
         String []options = clientSentence.split(" ");
         String User_Name = options[2].split("\n\r")[0];
         userlist.remove(User_Name);
-        update_user_list(User_Name,0);
+        onlineSocket.remove(User_Name);
+        return update_user_list(User_Name,0);
 	}
 
 	/**
@@ -202,22 +217,25 @@ public class Server{
 
                     String clientSentence = inFromClient.readLine();
                     int state = action(clientSentence);
+                    String response = "";
                     switch (state) {
                         case 1:
-                            handshake(clientSentence);
-                            outToClient.writeBytes(Status + '\n');
+                            response = handshake(clientSentence);
+                            outToClient.writeBytes(response + '\n');
                             break;
                         case 2:
-                            user_log_in(clientSentence, connectionSocket);
-                            outToClient.writeBytes(Status + '\n');
+                            response = user_log_in(clientSentence, connectionSocket);
+                            outToClient.writeBytes(response + '\n');
                             break;
                         case 3:
-                            send_list();
-                            outToClient.writeBytes(Status + '\n');
+                            response = send_list();
+                            outToClient.writeBytes(response + '\n');
                             break;
                         case 4:
-                            user_log_out(clientSentence);
-                            outToClient.writeBytes(Status + '\n');
+                            response = user_log_out(clientSentence);
+                            //outToClient.writeBytes(Status + '\n');
+                            update_user_list_onlineUsers(response);
+                            
                             break;
                         case 5:
                            csmessage();
