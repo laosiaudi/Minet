@@ -18,6 +18,7 @@ public class Server{
         Status = "";
 
         Status = clientSentence.replace("MINET", "MIRO");
+
 	}
 
 	/**
