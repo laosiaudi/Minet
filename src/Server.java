@@ -8,7 +8,7 @@ import java.util.HashMap;
 
 public class Server{
     Map<String, String> userlist = new HashMap<String, String>();//key:user_name value:ip port
-    Map<String, Socket> online_user_list = new HashMap<String, String>();//key:user_name value:socket
+    Map<String, Socket> online_user_list = new HashMap<String, Socket>();//key:user_name value:socket
     //String Status = "";
 	//ArrayList<String>userlist = new ArrayList<String>();
 	/**
