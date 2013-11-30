@@ -77,9 +77,10 @@ public class Server{
 
             Status = Request_Line + Header_Line + "\n\r" + Entity_Body;
 
-            System.out.println(Status);
             
         }
+            
+        System.out.println(Status);
 
 	}
 
