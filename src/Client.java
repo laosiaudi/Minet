@@ -92,7 +92,7 @@ public class Client{
 	/*用户输入登录用户名*/
 	public static void main(String argv[]) throws Exception{
 		connecting = hello();
-		if(legal){
+		if(connecting){
 			System.out.println("connection success! Please login:");
 			System.out.print("user name: ");
 			Scanner in = new Scanner(System.in);
