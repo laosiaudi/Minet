@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 
+import javax.swing.text.html.HTMLDocument.Iterator;
+
 public class Server{
     Map<String, String> userlist = new HashMap<String, String>();//key:user_name value:ip port
     Map<String, Socket> online_user_list = new HashMap<String, Socket>();//key:user_name value:socket
@@ -87,7 +89,7 @@ public class Server{
             
         }
             
-        System.out.println(Status);
+      //  System.out.println(Status);
 
 	}
 
@@ -152,13 +154,17 @@ public class Server{
     *
     *deal with broadcast userlist
     */
-    private void update_onlinelist(String status) {
-        Iterator iter = online_user_list.entrySet().iterator();
-        while (iter.hasNext()){
-            Map.Entry entry = (Map.Entry)iter.next();
-            Socket _socket = entry.getValue();
+    private void update_onlinelist(String status) throws  IOException{
+    	
+    try {
+    	for(String key : online_user_list.keySet()) {
+       
+            Socket _socket = online_user_list.get(key);
             DataOutputStream outToClient = new DataOutputStream(_socket.getOutputStream());
             outToClient.writeBytes(status + '\n');
+        }
+    }catch(Exception e){
+            e.printStackTrace();
         }
     }
 
