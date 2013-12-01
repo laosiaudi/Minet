@@ -5,15 +5,15 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
-
+import java.util.TimerTask;
 import javax.swing.text.html.HTMLDocument.Iterator;
-
+import java.util.Timer;
 public class Server{
-    Map<String, String> userlist = new HashMap<String, String>();//key:user_name value:ip port
-    Map<String, Socket> online_user_list = new HashMap<String, Socket>();//key:user_name value:socket
-    //String Status = "";
-	//ArrayList<String>userlist = new ArrayList<String>();
-	/**
+    static Map<String,Socket> online_user_list = new HashMap<String, Socket>();//key:user_name value:socket
+    static Map<String, String> userlist = new HashMap<String, String>();//key:user_name value:ip port
+	static Map<String, String> beat_time = new HashMap<String, String>();//key:user_name value:whether user is online
+    Timer timer = new Timer();//timer 
+    /**
 	*used to handshake, just to send handshake message
 	*/
 	private String handshake(String clientSentence){
@@ -84,6 +84,9 @@ public class Server{
             String Entity_Body = "\r\n";
 
             Status = Request_Line + Header_Line + "\r\n" + Entity_Body;
+            beat_time.put(User_Name,"NO");
+            timer.schedule(new Check_Beat(User_Name),1000,10000);
+            
             return Status;
 
             
@@ -176,6 +179,7 @@ public class Server{
         String User_Name = options[2].split("[\\n\\r]+")[0];
         userlist.remove(User_Name);
         online_user_list.remove(User_Name);
+        beat_time.remove(User_Name);
         return update_user_list(User_Name,0);
 	}
 
@@ -189,8 +193,12 @@ public class Server{
 	/**
 	*deal with user heart-beat
 	*/
-	private void keep_beat(){
+	private void keep_beat(String clientSentence){
+       String []options = clientSentence.split(" ");
+       String User_Name = options[2].split("[\\n\\r]+")[0];
+       Date Current_Date = new Date(System.currentTimeMillis());
         
+       beat_time.put(User_Name,"YES");
 	}
 
     /**
@@ -225,6 +233,7 @@ public class Server{
 		new Thread(new Runnable(){
             public void run(){
                 try{
+                    timer.purge();
                     BufferedInputStream inFromClient = new BufferedInputStream(connectionSocket.getInputStream());
                     DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 
@@ -267,7 +276,7 @@ public class Server{
                            csmessage();
                            break;
                         case 6:
-                           keep_beat();
+                           keep_beat(clientSentence);
                            break;
 
                     }
@@ -278,6 +287,29 @@ public class Server{
             }
         }).start();
 	}
+
+    //the class is to time 10s to check whether user is online
+    class Check_Beat extends TimerTask{
+        private String User_Name;
+        public Check_Beat(String User_Name){
+            this.User_Name = User_Name;
+        }
+        @Override
+        public void run(){
+           if (beat_time.get(User_Name).equals("NO")) {
+                userlist.remove(User_Name);
+                online_user_list.remove(User_Name);
+                beat_time.remove(User_Name);
+                this.cancel();
+
+           }
+           else{
+                beat_time.put(User_Name,"NO");
+           }
+
+        }
+        
+    }
     public static void main(String argv[]) throws Exception{
 		
 		String clientSentence;
