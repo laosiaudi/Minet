@@ -31,20 +31,20 @@ public class Server{
         String Status = "";
         String []options = inFromClient.split(" ");
         
-        String User_Name = options[2].split("[\\n\\r]+")[0];
+        String User_Name = options[2].split("[\\r\\n]+")[0];
 
-        String Port_Num = options[3].split("[\\n\\r]+")[0];
+        String Port_Num = options[3].split("[\\r\\n]+")[0];
         String IP_Num = connectionSocket.getInetAddress().getHostAddress();
 
         String User_Info = IP_Num + "," + Port_Num;
         //System.out.println(User_Info);
         Status = "";
         if (userlist.get(User_Name) != null) {
-        	  String Request_Line = "CS1.0" + " " + "STATUS" + " " + "0" + "\n\r";
+        	  String Request_Line = "CS1.0" + " " + "STATUS" + " " + "0" + "\r\n";
               
 
               String Message = "The user name already exists";
-              String Entity_Body = Message + "\n\r";
+              String Entity_Body = Message + "\r\n";
 
               /**
                * Set the time format
@@ -56,16 +56,16 @@ public class Server{
                */
               String Content_Length = String.valueOf(Entity_Body.getBytes().length);
        
-              String Header_Line = "Date" + " " + DateStr + "Content-Length" + " " + Content_Length + "\n\r";
+              String Header_Line = "Date" + " " + DateStr + "Content-Length" + " " + Content_Length + "\r\n";
 
-              Status += Request_Line + Header_Line + "\n\r" + Entity_Body;
+              Status += Request_Line + Header_Line + "\r\n" + Entity_Body;
               return Status;
         }
            // return false;
         else {
             userlist.put(User_Name, User_Info);
             online_user_list.put(User_Name, connectionSocket);
-            String Request_Line = "CS1.0" + " " + "STATUS" + " " + "1" + "\n\r";
+            String Request_Line = "CS1.0" + " " + "STATUS" + " " + "1" + "\r\n";
 
             /**
              * Set the time format
@@ -74,16 +74,16 @@ public class Server{
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
             Date Current_Date = new Date(System.currentTimeMillis());
             String DateStr = formatter.format(Current_Date);
-            String Header_Line = "Date" + " " + DateStr + "Content-Length" + " " + "0" + "\n\r";
+            String Header_Line = "Date" + " " + DateStr + "Content-Length" + " " + "0" + "\r\n";
             //System.out.println(DateStr);
 
 
             /**
              * If the user logs in successfully, then the entity body is set to be empty
              */
-            String Entity_Body = "\n\r";
+            String Entity_Body = "\r\n";
 
-            Status = Request_Line + Header_Line + "\n\r" + Entity_Body;
+            Status = Request_Line + Header_Line + "\r\n" + Entity_Body;
             return Status;
 
             
@@ -99,7 +99,7 @@ public class Server{
 	*/
 	private String send_list(){
         String Status  = "";
-        String Request_Line = "CS1.0" + " " + "LIST" + "\n\r";
+        String Request_Line = "CS1.0" + " " + "LIST" + "\r\n";
 
         String Entity_Body = "";
         /**
@@ -109,7 +109,7 @@ public class Server{
             String value = userlist.get(key);
             String []temp = value.split(",");
 
-            Entity_Body += key + " " + temp[0] + " " + temp[1] + "\n\r";
+            Entity_Body += key + " " + temp[0] + " " + temp[1] + "\r\n";
         }
 
         Date Current_Date = new Date(System.currentTimeMillis());
@@ -119,8 +119,8 @@ public class Server{
         String Content_Length = String.valueOf(Entity_Body.getBytes().length);
        // SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
-        String Header_Line = "Date" + " " + DateStr + "Content-Length" + Content_Length + "\n\r";
-        Status = Request_Line + Header_Line + "\n\r" + Entity_Body;
+        String Header_Line = "Date" + " " + DateStr + "Content-Length" + Content_Length + "\r\n";
+        Status = Request_Line + Header_Line + "\r\n" + Entity_Body;
         return Status;
 
 	}
@@ -138,13 +138,13 @@ public class Server{
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         String DateStr = formatter.format(Current_Date);
 
-        String Header_Line = "Date" + " " + DateStr + "Content-Length" + " " + "0" + "\n\r";
+        String Header_Line = "Date" + " " + DateStr + "Content-Length" + " " + "0" + "\r\n";
 
-        String Entity_Body = "\n\r";
+        String Entity_Body = "\r\n";
         if (i == 0) 
-            Request_Line = "CS1.0" + " " + "UPDATE" + " " + "0" + " " + Name + "\n\r";
+            Request_Line = "CS1.0" + " " + "UPDATE" + " " + "0" + " " + Name + "\r\n";
         else
-            Request_Line = "CS1.0" + " " + "UPDATE" + " " + "1" + " " + Name + "\n\r";
+            Request_Line = "CS1.0" + " " + "UPDATE" + " " + "1" + " " + Name + "\r\n";
 
         Status += Request_Line + Header_Line + Entity_Body;
         return Status;
