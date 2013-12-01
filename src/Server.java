@@ -84,8 +84,8 @@ public class Server{
             String Entity_Body = "\r\n";
 
             Status = Request_Line + Header_Line + "\r\n" + Entity_Body;
-            beat_time.put(User_Name,"NO");
-            timer.schedule(new Check_Beat(User_Name),1000,10000);
+           // beat_time.put(User_Name,"NO");
+           // timer.schedule(new Check_Beat(User_Name),1000,10000);
             
             return Status;
 
@@ -233,7 +233,7 @@ public class Server{
 		new Thread(new Runnable(){
             public void run(){
                 try{
-                    timer.purge();
+                    //timer.purge();
                     BufferedInputStream inFromClient = new BufferedInputStream(connectionSocket.getInputStream());
                     DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 
@@ -261,6 +261,7 @@ public class Server{
                             break;
                         case 2:
                             Status = user_log_in(clientSentence, connectionSocket);
+                            System.out.println(Status+"dgag");
                             outToClient.writeBytes(Status + '\n');
                             break;
                         case 3:
@@ -280,7 +281,6 @@ public class Server{
                            break;
 
                     }
-                    inFromClient.close();
                 }catch(Exception e){
                     e.printStackTrace();
                 }
@@ -314,7 +314,7 @@ public class Server{
 		
 		String clientSentence;
         Server server = new Server();
-		ServerSocket welcomeSocket = new ServerSocket(6788);
+		ServerSocket welcomeSocket = new ServerSocket(6770);
 		while(true){
 			Socket connectionSocket = welcomeSocket.accept();
             server.process(connectionSocket);

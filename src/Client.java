@@ -5,25 +5,23 @@ import java.util.*;
 import ClientProtocal.*;
 
 public class Client{
-	static String toScreen;
-	static String toServer;
-	static String fromServer;
-	static String fromUser;
-	static Socket clientSocket;
-	static DataOutputStream outToServer;
-	static BufferedReader inFromServer;
-	static BufferedReader inFromUser;
-	static String localIP;
-	static String ServerIP = "172.18.158.39";
-	static String username;
-	static boolean connecting = false;
-	static ServerSocket welcomeSocket;
-	static Socket connectionSocket;
+	String toScreen;
+	String toServer;
+	String fromServer;
+	String fromUser;
+	Socket clientSocket;
+	DataOutputStream outToServer;
+	BufferedReader inFromServer;
+	BufferedReader inFromUser;
+	String localIP;
+	String ServerIP = "172.18.158.39";
+	static public String username;
+	static public boolean connecting = false;
 	
 	/*connect and send hello*/
-	public static boolean hello() throws Exception{
+	public boolean hello() throws Exception{
 		
-		clientSocket = new Socket(ServerIP,6788);
+		clientSocket = new Socket(ServerIP,6770);
 		outToServer = new DataOutputStream(clientSocket.getOutputStream());
 		inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		
@@ -39,7 +37,7 @@ public class Client{
 			fromServer = inFromServer.readLine();
 			if(fromServer != null){
 				String checkHello = "MIRO" + " " + ServerIP;
-				if(fromServer == checkHello)
+				if(fromServer.equals(checkHello))
 					return true;
 				else return false;
 			}
@@ -48,24 +46,31 @@ public class Client{
 	}
 	
 	/*login function*/
-	public static boolean login(String username) throws Exception{
+	public boolean login(String username) throws Exception{
 		if (connecting){
 			int p2pPort = 6789;
 			try{
 				Login loginProtocal = new Login(username,p2pPort);
-				
+			
 				toServer = loginProtocal.getContent();
-				outToServer.writeBytes(toServer + "\n");
+				String []first = toServer.split("\r\n");
+				System.out.println(first[0]);
+				outToServer = new DataOutputStream(clientSocket.getOutputStream());
 				
-				fromServer = inFromServer.readLine();
-				if (fromServer != null){
-					String []ifsuccess = fromServer.split(" ");
-					if (ifsuccess[1].equals("1"))
-						return true;
-					else
-						return false;
-				}else
-					return false;
+				inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+				
+				outToServer.writeBytes(toServer + "\n");
+				while (true)
+				{
+					fromServer = inFromServer.readLine();
+					if (fromServer != null){
+						String []ifsuccess = fromServer.split(" ");
+						if (ifsuccess[1].equals("1"))
+							return true;
+						else
+							return false;
+					}
+				}
 			}catch (IOException e){
 				e.printStackTrace();
 			}
@@ -73,7 +78,7 @@ public class Client{
 		return false;
 	}
 
-	public static void process(final Socket connectionSocket) throws IOException{
+	public void process(final Socket connectionSocket) throws IOException{
 		new Thread(new Runnable(){
 			public void run(){
 				try{
@@ -87,18 +92,21 @@ public class Client{
 	}
 	
 	public static void main(String argv[]) throws Exception{
-		connecting = hello();
+		Client client = new Client();
+		connecting = client.hello();
 		if(connecting){
 			System.out.println("connection success!");
 			System.out.print("Please login your username: ");
 			Scanner in = new Scanner(System.in);
 			username = in.next();
-			if (login(username)){
+			if (client.login(username)){
 				System.out.println("Login success!");
+				ServerSocket welcomeSocket;
+				Socket connectionSocket;
 				welcomeSocket = new ServerSocket(6789);
 				while (connecting){
 					connectionSocket = welcomeSocket.accept();
-					process(connectionSocket);
+					client.process(connectionSocket);
 				}
 			}else{
 				System.out.println("Login error!");
