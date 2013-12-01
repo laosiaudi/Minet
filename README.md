@@ -22,4 +22,5 @@ Windows: 双击ClientWin.bat Server.bat
  2013-11-30 15：00：Client端实现登录  
  2013-11-30 21:30: Server端实现多个函数，目前登陆函数已经过测试，正在测试其余函数  
  2013-12-01 00:44 Client修改回huangm-fat上传的2013-11-29 19:56版本,并删除了Stringtrans类，hello协议做了修改by huangmin  
- **2013-12-01 01:17 Server增加一个函数与变量 By Cai Lao**
+ 2013-12-01 01:17 Server增加一个函数与变量 By Cai Lao  
+ **2013-12-01 11:45 Server修改读取用户端消息方法并分割消息 By Lao**  
