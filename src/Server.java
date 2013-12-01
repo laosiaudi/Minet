@@ -31,9 +31,9 @@ public class Server{
         String Status = "";
         String []options = inFromClient.split(" ");
         
-        String User_Name = options[2].split("\n\r")[0];
+        String User_Name = options[2].split("[\\n\\r]+")[0];
 
-        String Port_Num = options[3].split("\n\r")[0];
+        String Port_Num = options[3].split("[\\n\\r]+")[0];
         String IP_Num = connectionSocket.getInetAddress().getHostAddress();
 
         String User_Info = IP_Num + "," + Port_Num;
@@ -75,7 +75,7 @@ public class Server{
             Date Current_Date = new Date(System.currentTimeMillis());
             String DateStr = formatter.format(Current_Date);
             String Header_Line = "Date" + " " + DateStr + "Content-Length" + " " + "0" + "\n\r";
-            System.out.println(DateStr);
+            //System.out.println(DateStr);
 
 
             /**
@@ -173,7 +173,7 @@ public class Server{
 	*/
 	private String user_log_out(String clientSentence){
         String []options = clientSentence.split(" ");
-        String User_Name = options[2].split("\n\r")[0];
+        String User_Name = options[2].split("[\\n\\r]+")[0];
         userlist.remove(User_Name);
         online_user_list.remove(User_Name);
         return update_user_list(User_Name,0);
@@ -225,10 +225,24 @@ public class Server{
 		new Thread(new Runnable(){
             public void run(){
                 try{
-                    BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+                    BufferedInputStream inFromClient = new BufferedInputStream(connectionSocket.getInputStream());
                     DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 
-                    String clientSentence = inFromClient.readLine();
+                    String clientSentence;
+                    StringBuilder temp = new StringBuilder();
+                    int ch;
+                    boolean flag = false;
+                    int pre = '\0';
+                    while(0 <= (ch = inFromClient.read())) {
+                        
+                        if (ch == '\n' && pre == '\r')
+                            break;
+                        temp.append((char)ch);
+                        pre = ch;
+                    }
+                    clientSentence = temp.toString();
+                    System.out.println(clientSentence);
+
                     int state = action(clientSentence);
                     String Status = "";
                     switch (state) {
@@ -268,7 +282,7 @@ public class Server{
 		
 		String clientSentence;
         Server server = new Server();
-		ServerSocket welcomeSocket = new ServerSocket(7000);
+		ServerSocket welcomeSocket = new ServerSocket(6788);
 		while(true){
 			Socket connectionSocket = welcomeSocket.accept();
             server.process(connectionSocket);

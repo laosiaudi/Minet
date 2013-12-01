@@ -22,9 +22,8 @@ class ClientTest{
             
             DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
 
-            String Test = inFromUser.readLine();
-
-            outToServer.writeBytes("yyy\n\rhhhh\n\r" + '\n');
+            String t = inFromUser.readLine();
+            outToServer.writeBytes("CS1.0 LOGIN caijin\n\rPort 6000\n\r" + '\n');
 
             BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
