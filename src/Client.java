@@ -14,7 +14,7 @@ public class Client{
 	static BufferedReader inFromServer;
 	static BufferedReader inFromUser;
 	static String localIP;
-	static String ServerIP = "172.18.158.39";
+	static String ServerIP = "10.4.15.40";
 	static String username;
 	static boolean connecting = false;
 	static ServerSocket welcomeSocket;
@@ -39,7 +39,7 @@ public class Client{
 			fromServer = inFromServer.readLine();
 			if(fromServer != null){
 				String checkHello = "MIRO" + " " + ServerIP;
-				if(fromServer == checkHello)
+                if(fromServer.equals(checkHello))
 					return true;
 				else return false;
 			}
@@ -56,10 +56,9 @@ public class Client{
 				
 				toServer = loginProtocal.getContent();
 				outToServer.writeBytes(toServer + "\n");
-				
 				fromServer = inFromServer.readLine();
 				if (fromServer != null){
-					String []ifsuccess = fromServer.split(" ");
+                    String []ifsuccess = fromServer.split(" ");
 					if (ifsuccess[1].equals("1"))
 						return true;
 					else
