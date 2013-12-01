@@ -4,9 +4,10 @@ public class Login extends Protocal{
 	String userName;
 	int Port;
 	
-	public String ToLogin(String un, int p){
+	public Login(String un, int p){
 		userName = un;
 		Port = p;
-		return content;
+		super.content = "CS1.0" + super.sp + "LOGIN" + super.sp 
+				+ userName + super.crlf + "Port" + super.sp + Port + super.crlf;
 	}
 }
