@@ -18,13 +18,13 @@ class ClientTest{
 			//System.out.println("From Server: " + modifiedSentence);
 		    ///clientSocket.close();
             BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-            Socket clientSocket = new Socket("127.0.0.1",7000);
+            Socket clientSocket = new Socket("127.0.0.1",6788);
             
             DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
 
             String Test = inFromUser.readLine();
 
-            outToServer.writeBytes(Test + '\n');
+            outToServer.writeBytes("yyy\n\rhhhh\n\r" + '\n');
 
             BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
