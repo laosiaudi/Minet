@@ -20,6 +20,7 @@ public class Server{
         String Status = "";
 
         Status = clientSentence.replace("MINET", "MIRO");
+        System.out.println(Status);
         return Status;
 
 	}
@@ -32,7 +33,6 @@ public class Server{
         String []options = inFromClient.split(" ");
         
         String User_Name = options[2].split("[\\r\\n]+")[0];
-
         String Port_Num = options[3].split("[\\r\\n]+")[0];
         String IP_Num = connectionSocket.getInetAddress().getHostAddress();
 
@@ -42,7 +42,6 @@ public class Server{
         if (userlist.get(User_Name) != null) {
         	  String Request_Line = "CS1.0" + " " + "STATUS" + " " + "0" + "\r\n";
               
-
               String Message = "The user name already exists";
               String Entity_Body = Message + "\r\n";
 
@@ -84,8 +83,8 @@ public class Server{
             String Entity_Body = "\r\n";
 
             Status = Request_Line + Header_Line + "\r\n" + Entity_Body;
-           // beat_time.put(User_Name,"NO");
-           // timer.schedule(new Check_Beat(User_Name),1000,10000);
+            beat_time.put(User_Name,"NO");
+            //timer.schedule(new Check_Beat(User_Name),1000,10000);
             
             return Status;
 
@@ -232,59 +231,63 @@ public class Server{
     private void process(final Socket connectionSocket) throws IOException{
 		new Thread(new Runnable(){
             public void run(){
+                boolean flag_ = true;
                 try{
-                    //timer.purge();
+                    timer.purge();
                     BufferedInputStream inFromClient = new BufferedInputStream(connectionSocket.getInputStream());
                     DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
+                    while (flag_){
+                        String clientSentence;
+                        StringBuilder temp = new StringBuilder();
+                        int ch;
+                        boolean flag = false;
+                        int pre = '\0';
+                        while(0 <= (ch = inFromClient.read())) {
+                            
+                            if (ch == '\n' && pre == '\n')
+                                break;
+                            temp.append((char)ch);
+                            pre = ch;
+                        }
+                        clientSentence = temp.toString();
+                        System.out.println(clientSentence);
 
-                    String clientSentence;
-                    StringBuilder temp = new StringBuilder();
-                    int ch;
-                    boolean flag = false;
-                    int pre = '\0';
-                    while(0 <= (ch = inFromClient.read())) {
-                        
-                        if (ch == '\n' && pre == '\r')
-                            break;
-                        temp.append((char)ch);
-                        pre = ch;
+                        int state = action(clientSentence);
+                        String Status = "";
+                        switch (state) {
+                            case 1:
+                                Status = handshake(clientSentence);
+                                outToClient.writeBytes(Status + '\n');
+                                break;
+                            case 2:
+                                Status = user_log_in(clientSentence, connectionSocket);
+                                outToClient.writeBytes(Status + '\n');
+                                break;
+                            case 3:
+                                Status = send_list();
+                                outToClient.writeBytes(Status + '\n');
+                                break;
+                            case 4:
+                                Status = user_log_out(clientSentence);
+                                //outToClient.writeBytes(Status + '\n');
+                                update_onlinelist(Status);
+                                flag_ = false;
+                                break;
+                            case 5:
+                               csmessage();
+                               break;
+                            case 6:
+                               keep_beat(clientSentence);
+                               break;
+
+                        }
                     }
-                    clientSentence = temp.toString();
-                    System.out.println(clientSentence);
-
-                    int state = action(clientSentence);
-                    String Status = "";
-                    switch (state) {
-                        case 1:
-                            Status = handshake(clientSentence);
-                            outToClient.writeBytes(Status + '\n');
-                            break;
-                        case 2:
-                            Status = user_log_in(clientSentence, connectionSocket);
-                            System.out.println(Status+"dgag");
-                            outToClient.writeBytes(Status + '\n');
-                            break;
-                        case 3:
-                            Status = send_list();
-                            outToClient.writeBytes(Status + '\n');
-                            break;
-                        case 4:
-                            Status = user_log_out(clientSentence);
-                            //outToClient.writeBytes(Status + '\n');
-                            update_onlinelist(Status);
-                            break;
-                        case 5:
-                           csmessage();
-                           break;
-                        case 6:
-                           keep_beat(clientSentence);
-                           break;
-
+                    }catch(Exception e){
+                        e.printStackTrace();
                     }
-                }catch(Exception e){
-                    e.printStackTrace();
-                }
+                
             }
+            
         }).start();
 	}
 
@@ -314,7 +317,7 @@ public class Server{
 		
 		String clientSentence;
         Server server = new Server();
-		ServerSocket welcomeSocket = new ServerSocket(6770);
+		ServerSocket welcomeSocket = new ServerSocket(6788);
 		while(true){
 			Socket connectionSocket = welcomeSocket.accept();
             server.process(connectionSocket);

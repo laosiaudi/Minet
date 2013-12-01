@@ -14,21 +14,21 @@ public class Client{
 	BufferedReader inFromServer;
 	BufferedReader inFromUser;
 	String localIP;
-	String ServerIP = "172.18.158.39";
+	String ServerIP = "172.18.159.41";
 	static public String username;
 	static public boolean connecting = false;
 	
 	/*connect and send hello*/
 	public boolean hello() throws Exception{
 		
-		clientSocket = new Socket(ServerIP,6770);
+		clientSocket = new Socket(ServerIP,6788);
 		outToServer = new DataOutputStream(clientSocket.getOutputStream());
 		inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		
 		InetAddress addr = InetAddress.getLocalHost();
 		localIP = addr.getHostAddress().toString();
 		
-		HelloMINET helloMINET = new HelloMINET(localIP);
+		HelloMINET helloMINET = new HelloMINET(ServerIP);
 		toServer = helloMINET.getContent();
 		
 		outToServer.writeBytes(toServer + "\n");
@@ -53,23 +53,32 @@ public class Client{
 				Login loginProtocal = new Login(username,p2pPort);
 			
 				toServer = loginProtocal.getContent();
-				String []first = toServer.split("\r\n");
-				System.out.println(first[0]);
 				outToServer = new DataOutputStream(clientSocket.getOutputStream());
 				
 				inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 				
 				outToServer.writeBytes(toServer + "\n");
-				while (true)
-				{
-					fromServer = inFromServer.readLine();
-					if (fromServer != null){
-						String []ifsuccess = fromServer.split(" ");
-						if (ifsuccess[1].equals("1"))
-							return true;
-						else
-							return false;
-					}
+				
+				StringBuilder temp = new StringBuilder();
+				int pre = '\0';
+				int ch;
+				while(0 <= (ch = inFromServer.read())) {
+                    
+                    if (ch == '\n' && pre == '\r')
+                        break;
+                    temp.append((char)ch);
+                    pre = ch;
+                }
+				fromServer = temp.toString();
+				
+				System.out.println(fromServer);
+				
+				if (fromServer != null){
+					String []ifsuccess = fromServer.split(" ");
+					if (ifsuccess[2].equals("1\r"))
+						return true;
+					else
+						return false;
 				}
 			}catch (IOException e){
 				e.printStackTrace();
