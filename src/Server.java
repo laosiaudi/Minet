@@ -28,7 +28,7 @@ public class Server{
 	/**
 	*used to deal with user log in
 	*/
-	private String user_log_in(String inFromClient, Socket connectionSocket){ //debugged
+	private String user_log_in(String inFromClient, Socket connectionSocket) throws IOException{  //debugged
         String Status = "";
         String []options = inFromClient.split(" ");
         
@@ -63,7 +63,7 @@ public class Server{
            // return false;
         else {
             userlist.put(User_Name, User_Info);
-            online_user_list.put(User_Name, connectionSocket);
+            
             String Request_Line = "CS1.0" + " " + "STATUS" + " " + "1" + "\r\n";
 
             /**
@@ -84,7 +84,9 @@ public class Server{
 
             Status = Request_Line + Header_Line + "\r\n" + Entity_Body;
             beat_time.put(User_Name,"NO");
-            //timer.schedule(new Check_Beat(User_Name),1000,10000);
+            update_onlinelist(update_user_list(User_Name,1));
+            online_user_list.put(User_Name, connectionSocket);
+            //timer.schedule(new Check_Beat(User_Name),10000,10000);
             
             return Status;
 
@@ -195,7 +197,6 @@ public class Server{
 	private void keep_beat(String clientSentence){
        String []options = clientSentence.split(" ");
        String User_Name = options[2].split("[\\n\\r]+")[0];
-       Date Current_Date = new Date(System.currentTimeMillis());
         
        beat_time.put(User_Name,"YES");
 	}
@@ -262,6 +263,8 @@ public class Server{
                             case 2:
                                 Status = user_log_in(clientSentence, connectionSocket);
                                 outToClient.writeBytes(Status + '\n');
+                                Status = send_list();
+                                outToClient.writeBytes(Status + '\n');
                                 break;
                             case 3:
                                 Status = send_list();
@@ -299,7 +302,9 @@ public class Server{
         }
         @Override
         public void run(){
-           if (beat_time.get(User_Name).equals("NO")) {
+           if (beat_time.get(User_Name) == null)
+               this.cancel();
+           else if (beat_time.get(User_Name).equals("NO")) {
                 userlist.remove(User_Name);
                 online_user_list.remove(User_Name);
                 beat_time.remove(User_Name);
