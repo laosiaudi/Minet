@@ -14,11 +14,12 @@ public class Client{
         BufferedReader inFromServer;
         BufferedReader inFromUser;
         String localIP;
-        String ServerIP = "172.18.159.41";
+        String ServerIP = "172.18.141.251";
         List onlineList = new LinkedList();
         static public String username;
         static public boolean connecting = false;
         static Map<String, String> userlist = new HashMap<String, String>();//key:user_name value:ip port
+        Timer timer = new Timer();
         
         /*connect and send hello*/
         public boolean hello() throws Exception{
@@ -52,9 +53,9 @@ public class Client{
                 if (connecting){
                         int p2pPort = 6789;
                         try{
-                                Login loginProtocal = new Login(username,p2pPort);
+                                Login loginProtocol = new Login(username,p2pPort);
                         
-                                toServer = loginProtocal.getContent();
+                                toServer = loginProtocol.getContent();
                                 outToServer = new DataOutputStream(clientSocket.getOutputStream());
                                 
                                 inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -81,6 +82,7 @@ public class Client{
                                                 return true;
                                         else
                                                 return false;
+              
                                 }
                         }catch (IOException e){
                                 e.printStackTrace();
@@ -121,11 +123,12 @@ public class Client{
         
         /*process the UPDATE protocol from the second line to the end, and change the online friend list*/
         public void updateOnline() throws IOException{
+        	System.out.println(fromServer);
         	String []options = fromServer.split(" ");
         	String status = options[2];
         	String userInfo = options[3];
         	while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0){
-        		
+        		System.out.println(fromServer);
         	}
         	if (status.equals('1')){
         		String []userInfos = userInfo.split(",");
@@ -134,12 +137,42 @@ public class Client{
         	else if (status.equals('0')){
         		userlist.remove(userInfo);
         	}
+        	Set<Map.Entry<String, String>> allSet=userlist.entrySet();
+        	Iterator<Map.Entry<String, String>> iter=allSet.iterator();
+        	System.out.println("This is the user list:\n");
+        	        while(iter.hasNext()){
+        	            Map.Entry<String, String> me=iter.next();
+        	             System.out.println(me.getKey()+ " "+me.getValue());
+        	        }
         }
         
         /*process the CSMESSAGE protocol from the second line to the end, and change the online friend list*/
-        public void csMessage(){
-        	
+        public void csMessage() throws IOException{
+        	String []options = fromServer.split(" ");
+        	String fromUserName = options[3];
+        	while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0){
+        	}
+        	while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0){
+            	System.out.println(fromUserName + "send to all: \"" + fromServer +"\"\n");
+        	}
         }
+        
+        /*9s to send the heartBeat protocol*/
+        public void heartBeat(){
+        	Timer timer;
+        	timer = new Timer(true);
+        	HeartBeat heartBeatProtocol = new HeartBeat(username);
+        	final String sendBeat = heartBeatProtocol.getContent();
+        	timer.schedule(
+        	new TimerTask() { 
+        		public void run(){ 
+        			try {
+						outToServer.writeBytes(sendBeat);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+        		} }, 0, 9*1000);
+        }   
         
         /*listen the server port*/
         private void serverListen() throws IOException{
@@ -149,6 +182,7 @@ public class Client{
         				while(true){
         					while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0)
             				{
+        						System.out.println(fromServer);
             					String []options = fromServer.split(" ");
                 		        if (options[1].equals("LIST"))
                 		        	listOnline();
@@ -158,10 +192,6 @@ public class Client{
                 		        	csMessage();
             				}
         				}
-            				
-            				
-        				
-        					
 			
         			}catch(IOException e){
         				e.printStackTrace();
@@ -179,13 +209,18 @@ public class Client{
                         username = in.next();
                         if (client.login(username)){
                                 System.out.println("Login success!");
+//                                while(true){
+//                              	  client.fromServer = client.inFromServer.readLine();
+//                              	  System.out.println(client.fromServer);
+//                                 }
                                 client.serverListen();
+                                client.heartBeat();
                                 ServerSocket welcomeSocket;
                                 welcomeSocket = new ServerSocket(6667);
                                 while (connecting){
                                 	Socket connectionSocket = welcomeSocket.accept();
                                         client.process(connectionSocket);
-//                                        System.out.println(client.inFromServer.readLine());
+                                        System.out.println(client.inFromServer.readLine());
                                 }
                         }else{
                                 System.out.println("Login error!");
