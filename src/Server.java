@@ -11,24 +11,25 @@ import java.util.Timer;
 public class Server{
     static Map<String,Socket> online_user_list = new HashMap<String, Socket>();//key:user_name value:socket
     static Map<String, String> userlist = new HashMap<String, String>();//key:user_name value:ip port
-	static Map<String, String> beat_time = new HashMap<String, String>();//key:user_name value:whether user is online
+    static Map<String, String> beat_time = new HashMap<String, String>();//key:user_name value:whether user is online
+        
     Timer timer = new Timer();//timer 
     /**
-	*used to handshake, just to send handshake message
-	*/
-	private String handshake(String clientSentence){
-        String Status = "";
+        *used to handshake, just to send handshake message
+        */
+        private String handshake(String clientSentence){
+            String Status = "";
 
-        Status = clientSentence.replace("MINET", "MIRO");
-        System.out.println(Status);
-        return Status;
+            Status = clientSentence.replace("MINET", "MIRO");
+            System.out.println(Status);
+            return Status;
 
-	}
+        }
 
-	/**
-	*used to deal with user log in
-	*/
-	private String user_log_in(String inFromClient, Socket connectionSocket) throws IOException{  //debugged
+        /**
+        *used to deal with user log in
+        */
+        private String user_log_in(String inFromClient, Socket connectionSocket) throws IOException{  //debugged
         String Status = "";
         String []options = inFromClient.split(" ");
         
@@ -40,7 +41,7 @@ public class Server{
         //System.out.println(User_Info);
         Status = "";
         if (userlist.get(User_Name) != null) {
-        	  String Request_Line = "CS1.0" + " " + "STATUS" + " " + "0" + "\r\n";
+                  String Request_Line = "CS1.0" + " " + "STATUS" + " " + "0" + "\r\n";
               
               String Message = "The user name already exists";
               String Entity_Body = Message + "\r\n";
@@ -84,7 +85,7 @@ public class Server{
 
             Status = Request_Line + Header_Line + "\r\n" + Entity_Body;
             beat_time.put(User_Name,"NO");
-            update_onlinelist(update_user_list(User_Name,1));
+            update_onlinelist(update_user_list(User_Name, 1, Port_Num, connectionSocket));
             online_user_list.put(User_Name, connectionSocket);
             //timer.schedule(new Check_Beat(User_Name),10000,10000);
             
@@ -95,63 +96,64 @@ public class Server{
             
       //  System.out.println(Status);
 
-	}
-
-	
-	/**
-	*deal with send online userlist to user
-	*/
-	private String send_list(){
-        String Status  = "";
-        String Request_Line = "CS1.0" + " " + "LIST" + "\r\n";
-
-        String Entity_Body = "";
-        /**
-         * Traverse the user list
-         */
-        for (String key : userlist.keySet()) {
-            String value = userlist.get(key);
-            String []temp = value.split(",");
-
-            Entity_Body += key + " " + temp[0] + " " + temp[1] + "\r\n";
         }
 
-        Date Current_Date = new Date(System.currentTimeMillis());
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        String DateStr = formatter.format(Current_Date);
+        
+        /**
+        *deal with send online userlist to user
+        */
+        private String send_list(){
+            String Status  = "";
+            String Request_Line = "CS1.0" + " " + "LIST" + "\r\n";
 
-        String Content_Length = String.valueOf(Entity_Body.getBytes().length);
-       // SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            String Entity_Body = "";
+            /**
+             * Traverse the user list
+             */
+            for (String key : userlist.keySet()) {
+                String value = userlist.get(key);
+                String []temp = value.split(",");
 
-        String Header_Line = "Date" + " " + DateStr + "Content-Length" + Content_Length + "\r\n";
-        Status = Request_Line + Header_Line + "\r\n" + Entity_Body;
-        return Status;
+                Entity_Body += key + " " + temp[0] + " " + temp[1] + "\r\n";
+            }
 
-	}
+            Date Current_Date = new Date(System.currentTimeMillis());
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            String DateStr = formatter.format(Current_Date);
 
-	/**
-	*send new_user_status to other users
-	*/
-	private String update_user_list(String Name, int i){
-        String Status = "";
+            String Content_Length = String.valueOf(Entity_Body.getBytes().length);
+        // SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
-        String Request_Line = "";
+            String Header_Line = "Date" + " " + DateStr + "Content-Length" + Content_Length + "\r\n";
+            Status = Request_Line + Header_Line + "\r\n" + Entity_Body;
+            return Status;
+
+        }
+
+        /**
+        *send new_user_status to other users
+        */
+        private String update_user_list(String Name, int i, String Port_Num,  Socket connectionSocket){
+            String Status = "";
+
+            String Request_Line = "";
 
 
-        Date Current_Date = new Date(System.currentTimeMillis());
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        String DateStr = formatter.format(Current_Date);
+            Date Current_Date = new Date(System.currentTimeMillis());
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            String DateStr = formatter.format(Current_Date);
+            String IP_Num = connectionSocket.getInetAddress().getHostAddress();
 
-        String Header_Line = "Date" + " " + DateStr + "Content-Length" + " " + "0" + "\r\n";
+            String Header_Line = "Date" + " " + DateStr + "Content-Length" + " " + "0" + "\r\n";
 
-        String Entity_Body = "\r\n";
-        if (i == 0) 
-            Request_Line = "CS1.0" + " " + "UPDATE" + " " + "0" + " " + Name + "\r\n";
-        else
-            Request_Line = "CS1.0" + " " + "UPDATE" + " " + "1" + " " + Name + "\r\n";
+            String Entity_Body = "\r\n";
+            if (i == 0) 
+                Request_Line = "CS1.0" + " " + "UPDATE" + " " + "0" + " " + Name + " " +  IP_Num + "," + Port_Num + "\r\n";
+            else
+                Request_Line = "CS1.0" + " " + "UPDATE" + " " + "1" + " " + Name + " "  + IP_Num + "," + Port_Num + "\r\n";
 
-        Status += Request_Line + Header_Line + Entity_Body;
-        return Status;
+            Status += Request_Line + Header_Line + Entity_Body;
+            return Status;
     }
 
     /**
@@ -159,9 +161,9 @@ public class Server{
     *deal with broadcast userlist
     */
     private void update_onlinelist(String status) throws  IOException{
-    	
+            
     try {
-    	for(String key : online_user_list.keySet()) {
+            for(String key : online_user_list.keySet()) {
        
             Socket _socket = online_user_list.get(key);
             DataOutputStream outToClient = new DataOutputStream(_socket.getOutputStream());
@@ -172,34 +174,35 @@ public class Server{
         }
     }
 
-	/**
-	*deal with user log out
-	*/
-	private String user_log_out(String clientSentence){
-        String []options = clientSentence.split(" ");
-        String User_Name = options[2].split("[\\n\\r]+")[0];
-        userlist.remove(User_Name);
-        online_user_list.remove(User_Name);
-        beat_time.remove(User_Name);
-        return update_user_list(User_Name,0);
-	}
+        /**
+        *deal with user log out
+        */
+        private String user_log_out(String clientSentence, Socket connectionSocket){
+            String []options = clientSentence.split(" ");
+            String User_Name = options[2].split("[\\n\\r]+")[0];
+            String Port_Num = options[3].split("[\\n\\r]+")[0];
+            userlist.remove(User_Name);
+            online_user_list.remove(User_Name);
+            beat_time.remove(User_Name);
+            return update_user_list(User_Name,0, Port_Num, connectionSocket);
+        }
 
-	/**
-	*deal with group talk
-	*/
-	private void csmessage(){
+        /**
+        *deal with group talk
+        */
+        private void csmessage(){
 
-	}
+        }
 
-	/**
-	*deal with user heart-beat
-	*/
-	private void keep_beat(String clientSentence){
-       String []options = clientSentence.split(" ");
-       String User_Name = options[2].split("[\\n\\r]+")[0];
+        /**
+        *deal with user heart-beat
+        */
+        private void keep_beat(String clientSentence){
+            String []options = clientSentence.split(" ");
+            String User_Name = options[2].split("[\\n\\r]+")[0];
         
-       beat_time.put(User_Name,"YES");
-	}
+            beat_time.put(User_Name,"YES");
+        }
 
     /**
     *deal with deciding which action to take according to the message
@@ -210,7 +213,7 @@ public class Server{
     *5--user_send_group_message
     *6--user_send_beat
     */
-	private static int action(String message){
+        private static int action(String message){
         String []options = message.split(" ");
         if (options[0].equals("MINET"))
             return 1;
@@ -230,7 +233,7 @@ public class Server{
         return -1; 
     }
     private void process(final Socket connectionSocket) throws IOException{
-		new Thread(new Runnable(){
+                new Thread(new Runnable(){
             public void run(){
                 boolean flag_ = true;
                 try{
@@ -271,7 +274,7 @@ public class Server{
                                 outToClient.writeBytes(Status + '\n');
                                 break;
                             case 4:
-                                Status = user_log_out(clientSentence);
+                                Status = user_log_out(clientSentence, connectionSocket);
                                 //outToClient.writeBytes(Status + '\n');
                                 update_onlinelist(Status);
                                 flag_ = false;
@@ -292,7 +295,7 @@ public class Server{
             }
             
         }).start();
-	}
+        }
 
     //the class is to time 10s to check whether user is online
     class Check_Beat extends TimerTask{
@@ -319,13 +322,13 @@ public class Server{
         
     }
     public static void main(String argv[]) throws Exception{
-		
-		String clientSentence;
-        Server server = new Server();
-		ServerSocket welcomeSocket = new ServerSocket(6788);
-		while(true){
-			Socket connectionSocket = welcomeSocket.accept();
-            server.process(connectionSocket);
-        }
+                
+                String clientSentence;
+                Server server = new Server();
+                ServerSocket welcomeSocket = new ServerSocket(6788);
+                while(true){
+                        Socket connectionSocket = welcomeSocket.accept();
+                        server.process(connectionSocket);
+                }
     }
 }
