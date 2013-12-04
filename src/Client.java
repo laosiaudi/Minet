@@ -122,10 +122,10 @@ public class Client{
         	while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0){
         		System.out.println(fromServer);
         	}
-        	if (status.equals('1')){
+        	if (status.equals("1")){
         		userlist.put(updateUserName, updateUserInfo[0]+" "+updateUserInfo[1]);
         	}
-        	else if (status.equals('0')){
+        	else if (status.equals("0")){
         		userlist.remove(updateUserName);
         	}
         	Set<Map.Entry<String, String>> allSet=userlist.entrySet();
