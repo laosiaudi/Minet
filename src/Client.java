@@ -117,16 +117,16 @@ public class Client{
         	System.out.println(fromServer);
         	String []options = fromServer.split(" ");
         	String status = options[2];
-        	String userInfo = options[3];
+        	String updateUserName = options[3];
+        	String []updateUserInfo = options[4].split(",");
         	while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0){
         		System.out.println(fromServer);
         	}
         	if (status.equals('1')){
-        		String []userInfos = userInfo.split(",");
-        		userlist.put(userInfos[0], userInfos[1]+" "+userInfos[2]);
+        		userlist.put(updateUserName, updateUserInfo[0]+" "+updateUserInfo[1]);
         	}
         	else if (status.equals('0')){
-        		userlist.remove(userInfo);
+        		userlist.remove(updateUserName);
         	}
         	Set<Map.Entry<String, String>> allSet=userlist.entrySet();
         	Iterator<Map.Entry<String, String>> iter=allSet.iterator();
