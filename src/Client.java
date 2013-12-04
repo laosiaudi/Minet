@@ -2,7 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-import ClientProtocal.*;
+import ClientProtocol.*;
 
 public class Client{
         String toScreen;
@@ -14,12 +14,15 @@ public class Client{
         BufferedReader inFromServer;
         BufferedReader inFromUser;
         String localIP;
-        String ServerIP = "172.18.141.251";
+        String ServerIP = "172.18.157.253";
         List onlineList = new LinkedList();
-        static public String username;
+        static public String username = new String();
         static public boolean connecting = false;
         static Map<String, String> userlist = new HashMap<String, String>();//key:user_name value:ip port
         Timer timer = new Timer();
+        static Map<String, Socket> chating_user_list = new HashMap<String, Socket>();
+        static Map<String, String> beat_time = new HashMap<String, String>();
+        Socket connectionSocket;
         
         /*connect and send hello*/
         public boolean hello() throws Exception{
@@ -91,18 +94,6 @@ public class Client{
                 return false;
         }
 
-        public void process(final Socket connectionSocket) throws IOException{
-                new Thread(new Runnable(){
-                        public void run(){
-                                try{
-                                	 BufferedReader inFromP2P = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-                                	 DataOutputStream outToP2P = new DataOutputStream(connectionSocket.getOutputStream());
-                                }catch(IOException e){
-                                        e.printStackTrace();
-                                }
-                        }
-                }).start();
-        }
         /*process the LIST protocol from the second line to the end, and list online friend to the user*/
         public void listOnline() throws IOException{
         	while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0){
@@ -179,7 +170,7 @@ public class Client{
         	new Thread(new Runnable(){
         		public void run(){
         			try{
-        				while(true){
+        				while(connecting){
         					while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0)
             				{
         						System.out.println(fromServer);
@@ -199,6 +190,170 @@ public class Client{
         		}
         	}).start();
         }
+        
+        private void P2Plistener() throws IOException {
+        	new Thread(new Runnable(){
+        		public void run(){
+        			try{
+        				ServerSocket welcomeSocket;
+                        welcomeSocket = new ServerSocket(6789);
+        				while(connecting){
+        					connectionSocket = welcomeSocket.accept();
+        					process(connectionSocket);
+        				}
+        			}catch(IOException e){
+        				e.printStackTrace();
+        			}
+        		}
+        	}).start();
+        }
+        
+        /*build P2P-chating TCP*/
+        private boolean hello_P2P(String uname) throws IOException{
+        	String P2Paddr = new String();
+        	String P2Pip = new String();
+        	String P2Pport = new String();
+        	Set<Map.Entry<String, String>> allSet=userlist.entrySet();
+        	Iterator<Map.Entry<String, String>> iter=allSet.iterator();
+        	while(iter.hasNext()){
+        		Map.Entry<String, String> me=iter.next();
+        		String temp = me.getKey();
+        		if (uname.equals(temp)){
+        			 P2Paddr = me.getValue();
+        			 break;
+        		}
+ 	        }
+        	
+        	String []P2PaddrSp = P2Paddr.split(" ");
+        	P2Pip = P2PaddrSp[0];
+        	Socket P2Psocket = new Socket(P2Pip,6789); 
+        	
+        	DataOutputStream outToP2PServer = new DataOutputStream(P2Psocket.getOutputStream());
+        	BufferedReader inFromP2PServer = new BufferedReader(new InputStreamReader(P2Psocket.getInputStream()));
+        	
+        	HelloMINET helloP2P = new HelloMINET(P2Pip);
+        	String helloStr = helloP2P.getContent();
+        	
+        	outToP2PServer.writeBytes(helloStr + '\n');
+        	
+        	String fromP2PServer = new String();
+        	while (true){
+        		fromP2PServer = inFromP2PServer.readLine();
+        		if (fromP2PServer != null){
+        			String checkHello = "MIRO" + " " + P2Pip;
+        			if(fromP2PServer.equals(checkHello)){
+        				chating_user_list.put(uname, P2Psocket);
+                        return true;
+        			}else 
+        				return false;
+        		}
+        	}
+        }
+        
+        public void process(final Socket connectionSocket) throws IOException{
+            new Thread(new Runnable(){
+                    public void run(){
+                    	boolean flag_ = true;
+                    	try{
+                    //		timer.purge();
+                    		BufferedReader inFromP2P = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+                    		DataOutputStream outToP2P = new DataOutputStream(connectionSocket.getOutputStream());
+                    		while (flag_ == true){
+                    			String Sentence;
+                    			StringBuilder temp = new StringBuilder();
+                    			int ch;
+                                boolean flag = false;
+                                int pre = '\0';
+                                while(0 <= (ch = inFromP2P.read())) {
+                                    
+                                    if (ch == '\n' && pre == '\n')
+                                        break;
+                                    temp.append((char)ch);
+                                    pre = ch;
+                                }
+                                Sentence = temp.toString();
+                                System.out.println(Sentence);
+                                
+                                int state = action(Sentence);
+                                String Status = "";
+                                switch (state){
+                                case 1:
+                                	Status = handshake(Sentence);
+                                    outToP2P.writeBytes(Status + '\n');
+                                    break;
+//                                case 2:
+//                                	Status = leave_chating(clientSentence);
+//                                    update_chating(Status);
+//                                    flag = false;
+//                                    break;
+//                                case 3:
+//                                	P2Pmessage();
+//                                	break;
+//                                case 4:
+//                                	keepBeat(Sentence);
+//                                	break;
+                                }
+                    		}
+                    	}catch(IOException e){
+                    		e.printStackTrace();
+                    	}
+                    }
+            }).start();
+        }
+        
+        /**
+         *deal with deciding which action to take according to the message
+         *1---handshake
+         *2---leave_chating
+         *3---P2P_chating
+         *4---Keep_Beat
+         */
+        private static int action(String message){
+            String []options = message.split(" ");
+            if (options[0].equals("MINET"))
+                return 1;
+            else{
+                if (options[1].equals("LEAVE"))
+                    return 2;
+                else if (options[1].equals("P2PMESSAGE"))
+                    return 3;
+                else if (options[1].equals("BEAT"))
+                    return 4;
+
+            }
+            return -1; 
+        }
+        
+        /**
+    	*used to handshake, just to send handshake message
+    	*/
+        private String handshake(String sentence){
+        	String Status = "";
+
+            Status = sentence.replace("MINET", "MIRO");
+            String []temp1 = Status.split(" ");
+            String []temp2 = temp1[1].split("\r\n");
+            String clientIP = temp2[2];
+            
+            String P2Paddr = new String();
+        	String P2Pip = new String();
+        	String P2Pname = new String();
+        	Set<Map.Entry<String, String>> allSet=userlist.entrySet();
+        	Iterator<Map.Entry<String, String>> iter=allSet.iterator();
+        	while(iter.hasNext()){
+        		Map.Entry<String, String> me=iter.next();
+        		String temp = me.getValue();
+        		String []P2PaddrSp = temp.split(" ");
+        		if (clientIP.equals(P2PaddrSp[0])){
+        			 P2Pname = me.getKey();
+        			 break;
+        		}
+ 	        }
+        	chating_user_list.put(P2Pname, connectionSocket);
+        	
+            return Status;
+        }
+        
         public static void main(String argv[]) throws Exception{
                 Client client = new Client();
                 connecting = client.hello();
@@ -215,13 +370,13 @@ public class Client{
 //                                 }
                                 client.serverListen();
                                 client.heartBeat();
-                                ServerSocket welcomeSocket;
-                                welcomeSocket = new ServerSocket(6667);
-                                while (connecting){
-                                	Socket connectionSocket = welcomeSocket.accept();
-                                        client.process(connectionSocket);
-                                        System.out.println(client.inFromServer.readLine());
-                                }
+                                client.P2Plistener();
+                                System.out.println("Please input the username you want to chat with:");
+                                String P2Pname = in.next();
+                                if (client.hello_P2P(P2Pname))
+                                	System.out.println("P2P connects successfully!");
+                                else
+                                	System.out.println("P2P connection error!");
                         }else{
                                 System.out.println("Login error!");
                         }
