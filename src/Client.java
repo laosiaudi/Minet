@@ -1,6 +1,8 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 
 import ClientProtocol.*;
 
@@ -10,11 +12,15 @@ public class Client{
         String fromServer;
         String fromUser;
         Socket clientSocket;
+        Socket P2Psocket;
         DataOutputStream outToServer;
+        DataOutputStream outToP2PServer;
         BufferedReader inFromServer;
         BufferedReader inFromUser;
+        BufferedReader inFromP2PServer;
         String localIP;
-        String ServerIP = "172.18.157.253";
+        String ServerIP = "172.18.159.41";
+        List onlineList = new LinkedList();
         static public String username = new String();
         static public boolean connecting = false;
         static Map<String, String> userlist = new HashMap<String, String>();//key:user_name value:ip port
@@ -114,26 +120,26 @@ public class Client{
         /*process the UPDATE protocol from the second line to the end, and change the online friend list*/
         public void updateOnline() throws IOException{
         	System.out.println(fromServer);
-        	String []options = fromServer.split(" ");
-        	String status = options[2];
-        	String updateUserName = options[3];
-        	String []updateUserInfo = options[4].split(",");
-        	while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0){
-        		System.out.println(fromServer);
-        	}
-        	if (status.equals("1")){
-        		userlist.put(updateUserName, updateUserInfo[0]+" "+updateUserInfo[1]);
-        	}
-        	else if (status.equals("0")){
-        		userlist.remove(updateUserName);
-        	}
-        	Set<Map.Entry<String, String>> allSet=userlist.entrySet();
-        	Iterator<Map.Entry<String, String>> iter=allSet.iterator();
-        	System.out.println("This is the user list:\n");
-        	        while(iter.hasNext()){
-        	            Map.Entry<String, String> me=iter.next();
-        	             System.out.println(me.getKey()+ " "+me.getValue());
-        	        }
+            String []options = fromServer.split(" ");
+            String status = options[2];
+            String updateUserName = options[3];
+            String []updateUserInfo = options[4].split(",");
+            while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0){
+                    System.out.println(fromServer);
+            }
+            if (status.equals('1')){
+                    userlist.put(updateUserName, updateUserInfo[0]+" "+updateUserInfo[1]);
+            }
+            else if (status.equals('0')){
+                    userlist.remove(updateUserName);
+            }
+            Set<Map.Entry<String, String>> allSet=userlist.entrySet();
+            Iterator<Map.Entry<String, String>> iter=allSet.iterator();
+            System.out.println("This is the user list:\n");
+                    while(iter.hasNext()){
+                        Map.Entry<String, String> me=iter.next();
+                         System.out.println(me.getKey()+ " "+me.getValue());
+                    }
         }
         
         /*process the CSMESSAGE protocol from the second line to the end, and change the online friend list*/
@@ -157,7 +163,7 @@ public class Client{
         	new TimerTask() { 
         		public void run(){ 
         			try {
-						outToServer.writeBytes(sendBeat);
+						outToServer.writeBytes(sendBeat + "\n");
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -225,21 +231,21 @@ public class Client{
         	
         	String []P2PaddrSp = P2Paddr.split(" ");
         	P2Pip = P2PaddrSp[0];
-        	Socket P2Psocket = new Socket(P2Pip,6789); 
-        	
-        	DataOutputStream outToP2PServer = new DataOutputStream(P2Psocket.getOutputStream());
-        	BufferedReader inFromP2PServer = new BufferedReader(new InputStreamReader(P2Psocket.getInputStream()));
+        	P2Psocket = new Socket(P2Pip,6789); 
+        	outToP2PServer = new DataOutputStream(P2Psocket.getOutputStream());
+        	inFromP2PServer = new BufferedReader(new InputStreamReader(P2Psocket.getInputStream()));
         	
         	HelloMINET helloP2P = new HelloMINET(P2Pip);
         	String helloStr = helloP2P.getContent();
         	
         	outToP2PServer.writeBytes(helloStr + '\n');
-        	
+        	System.out.println(helloStr);
         	String fromP2PServer = new String();
         	while (true){
         		fromP2PServer = inFromP2PServer.readLine();
         		if (fromP2PServer != null){
         			String checkHello = "MIRO" + " " + P2Pip;
+        			System.out.println(checkHello);
         			if(fromP2PServer.equals(checkHello)){
         				chating_user_list.put(uname, P2Psocket);
                         return true;
@@ -249,6 +255,23 @@ public class Client{
         	}
         }
         
+        public void sendMessage(String mail) throws IOException{
+        	Date Current_Date = new Date(System.currentTimeMillis());
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            String DateStr = formatter.format(Current_Date);
+            P2PMessage header = new P2PMessage(username);
+            String mess = header.getContent();
+            int content_length = mail.length();
+            mess += "Date" + " " + DateStr + "Content-Length" + " " + content_length + "\r\n";
+            mess += "Content-Type" + " " + "text/html" + " " + "charset" + " " + "ISO-8859-1" + "\r\n";
+            mess += "\r\n" + mail; 
+            try{
+            	outToP2PServer = new DataOutputStream(P2Psocket.getOutputStream());
+            	outToP2PServer.writeBytes(mess + '\n');
+            }catch (IOException e){
+            	e.printStackTrace();
+            }
+        }
         public void process(final Socket connectionSocket) throws IOException{
             new Thread(new Runnable(){
                     public void run(){
@@ -277,7 +300,7 @@ public class Client{
                                 String Status = "";
                                 switch (state){
                                 case 1:
-                                	Status = handshake(Sentence);
+                                	Status = handshake(Sentence,connectionSocket);
                                     outToP2P.writeBytes(Status + '\n');
                                     break;
 //                                case 2:
@@ -285,9 +308,9 @@ public class Client{
 //                                    update_chating(Status);
 //                                    flag = false;
 //                                    break;
-//                                case 3:
-//                                	P2Pmessage();
-//                                	break;
+                                case 3:
+                                	P2Pmessage(Sentence,connectionSocket);
+                                	break;
 //                                case 4:
 //                                	keepBeat(Sentence);
 //                                	break;
@@ -326,16 +349,13 @@ public class Client{
         /**
     	*used to handshake, just to send handshake message
     	*/
-        private String handshake(String sentence){
+        private String handshake(String sentence, Socket connectionSocket){
         	String Status = "";
 
             Status = sentence.replace("MINET", "MIRO");
-            String []temp1 = Status.split(" ");
-            String []temp2 = temp1[1].split("\r\n");
-            String clientIP = temp2[2];
             
-            String P2Paddr = new String();
-        	String P2Pip = new String();
+            String clientIP = connectionSocket.getInetAddress().getHostAddress();
+
         	String P2Pname = new String();
         	Set<Map.Entry<String, String>> allSet=userlist.entrySet();
         	Iterator<Map.Entry<String, String>> iter=allSet.iterator();
@@ -351,6 +371,29 @@ public class Client{
         	chating_user_list.put(P2Pname, connectionSocket);
         	
             return Status;
+        }
+        
+        private void P2Pmessage(String sentence, Socket connectionSocket) throws IOException{
+        	String clientIP = connectionSocket.getInetAddress().getHostAddress();
+        	Set<Map.Entry<String, Socket>> allSet=chating_user_list.entrySet();
+        	Iterator<Map.Entry<String, Socket>> iter=allSet.iterator();
+        	String P2Pname = new String();
+        	while(iter.hasNext()){
+        		Map.Entry<String, Socket> me=iter.next();
+        		Socket temp = me.getValue();
+        		String tempIP = temp.getInetAddress().getHostAddress();
+        		if (clientIP.equals(tempIP)){
+        			 P2Pname = me.getKey();
+        			 break;
+        		}
+ 	        }
+        	
+        	String []options = sentence.split("\r\n");
+        	String []content_info = options[1].split(" ");
+        	String length_temp = content_info[3];
+        	int length = Integer.parseInt(length_temp);
+            
+        	System.out.println(P2Pname + ": " + options[3]);
         }
         
         public static void main(String argv[]) throws Exception{
@@ -372,8 +415,11 @@ public class Client{
                                 client.P2Plistener();
                                 System.out.println("Please input the username you want to chat with:");
                                 String P2Pname = in.next();
-                                if (client.hello_P2P(P2Pname))
+                                if (client.hello_P2P(P2Pname)){
                                 	System.out.println("P2P connects successfully!");
+                                	String mail = in.next();
+                                	client.sendMessage(mail);
+                                }
                                 else
                                 	System.out.println("P2P connection error!");
                         }else{
