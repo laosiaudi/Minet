@@ -8,6 +8,6 @@ public class Login extends Protocol{
                 userName = un;
                 Port = p;
                 super.content = "CS1.0" + super.sp + "LOGIN" + super.sp
-                                + userName + super.crlf + "Port" + super.sp + Port + super.crlf;
+                                + userName + super.crlf + "Port" + super.sp + Port + super.crlf + "\n";
         }
 }
