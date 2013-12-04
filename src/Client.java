@@ -15,7 +15,6 @@ public class Client{
         BufferedReader inFromUser;
         String localIP;
         String ServerIP = "172.18.157.253";
-        List onlineList = new LinkedList();
         static public String username = new String();
         static public boolean connecting = false;
         static Map<String, String> userlist = new HashMap<String, String>();//key:user_name value:ip port
