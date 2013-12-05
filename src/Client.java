@@ -19,10 +19,11 @@ public class Client{
         BufferedReader inFromUser;
         BufferedReader inFromP2PServer;
         String localIP;
-        String ServerIP = "172.18.159.41";
+        String ServerIP = "172.18.141.251";
         List onlineList = new LinkedList();
         static public String username = new String();
         static public boolean connecting = false;
+        static public int localP2PPort;
         static Map<String, String> userlist = new HashMap<String, String>();//key:user_name value:ip port
         Timer timer = new Timer();
         static Map<String, Socket> chating_user_list = new HashMap<String, Socket>();
@@ -59,9 +60,8 @@ public class Client{
         /*login function*/
         public boolean login(String username) throws Exception{
                 if (connecting){
-                        int p2pPort = 6789;
                         try{
-                                Login loginProtocol = new Login(username,p2pPort);
+                                Login loginProtocol = new Login(username,localP2PPort);
                         
                                 toServer = loginProtocol.getContent();
                                 outToServer = new DataOutputStream(clientSocket.getOutputStream());
@@ -127,10 +127,10 @@ public class Client{
             while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0){
                     System.out.println(fromServer);
             }
-            if (status.equals('1')){
+            if (status.equals("1")){
                     userlist.put(updateUserName, updateUserInfo[0]+" "+updateUserInfo[1]);
             }
-            else if (status.equals('0')){
+            else if (status.equals("0")){
                     userlist.remove(updateUserName);
             }
             Set<Map.Entry<String, String>> allSet=userlist.entrySet();
@@ -170,12 +170,35 @@ public class Client{
         		} }, 0, 9*1000);
         }   
         
+        /*user Leave and exit the system*/
+        public void userLeave() throws IOException{
+        	Leave leaveProtocol = new Leave(username);
+        	outToServer.writeBytes(leaveProtocol.getContent() + "\n");
+        	System.exit(0);
+        }
+        
+        /**
+         * @param message the message that user send to all user through server
+         * 
+         * */
+        public void sendToAll(String message) throws IOException{
+        	SendToAll sendToAllProtocol = new SendToAll(username, message);
+        	outToServer.writeBytes(sendToAllProtocol.getContent() + "\n");
+        }
+        
+        /*send GETLIST protocol to get the all online list*/
+        public void getOnlineList() throws IOException{
+        	GetList getListProtocol = new GetList();
+        	outToServer.writeBytes(getListProtocol.getContent() + "\n");
+        }
+        
+        
         /*listen the server port*/
         private void serverListen() throws IOException{
         	new Thread(new Runnable(){
         		public void run(){
         			try{
-        				while(connecting){
+        				while(true){
         					while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0)
             				{
         						System.out.println(fromServer);
@@ -201,7 +224,8 @@ public class Client{
         		public void run(){
         			try{
         				ServerSocket welcomeSocket;
-                        welcomeSocket = new ServerSocket(6789);
+                        welcomeSocket = new ServerSocket(0);
+                        localP2PPort = welcomeSocket.getLocalPort();
         				while(connecting){
         					connectionSocket = welcomeSocket.accept();
         					process(connectionSocket);
@@ -231,7 +255,7 @@ public class Client{
         	
         	String []P2PaddrSp = P2Paddr.split(" ");
         	P2Pip = P2PaddrSp[0];
-        	P2Psocket = new Socket(P2Pip,6789); 
+        	P2Psocket = new Socket(P2Pip,localP2PPort); 
         	outToP2PServer = new DataOutputStream(P2Psocket.getOutputStream());
         	inFromP2PServer = new BufferedReader(new InputStreamReader(P2Psocket.getInputStream()));
         	
@@ -402,6 +426,8 @@ public class Client{
                 if(connecting){
                         System.out.println("connection success!");
                         System.out.print("Please login your username: ");
+                        /*Before login, find a free port to listen p2p, and when login send the port to server*/
+                        client.P2Plistener();
                         Scanner in = new Scanner(System.in);
                         username = in.next();
                         if (client.login(username)){
@@ -412,8 +438,10 @@ public class Client{
 //                                 }
                                 client.serverListen();
                                 client.heartBeat();
-                                client.P2Plistener();
+                                client.sendToAll("hello");
                                 System.out.println("Please input the username you want to chat with:");
+                              
+                               
                                 String P2Pname = in.next();
                                 if (client.hello_P2P(P2Pname)){
                                 	System.out.println("P2P connects successfully!");
