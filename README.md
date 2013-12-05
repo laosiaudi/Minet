@@ -6,7 +6,7 @@ Computer Network Course Project
 
 
 ServerTest.java  ClientTest.java为简单的cs模型demo，  
-实现Client发送消息给Server，在Server上打印出来 
+实现Client发送消息给Server，在Server上打印出来  
 **服务端已部署在23.98.34.182 端口8000上**  
 
 运行方法  
