@@ -2,8 +2,8 @@ package ClientProtocol;
 import java.net.*;
 
 public class HelloMINET extends Protocol {
-	String localIP;
-	public HelloMINET(String localIP){
-		super.content = "MINET" + super.sp + localIP + super.crlf ;
+	String hostname;
+	public HelloMINET(String hostName){
+		super.content = "MINET" + super.sp + hostName + super.crlf ;
 	}
 }

@@ -87,7 +87,7 @@ public class Server{
             beat_time.put(User_Name,"NO");
             update_onlinelist(update_user_list(User_Name, 1, Port_Num, connectionSocket));
             online_user_list.put(User_Name, connectionSocket);
-            //timer.schedule(new Check_Beat(User_Name),10000,10000);
+            timer.schedule(new Check_Beat(User_Name),10000,10000);
             
             return Status;
 

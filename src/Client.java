@@ -19,7 +19,10 @@ public class Client{
         BufferedReader inFromUser;
         BufferedReader inFromP2PServer;
         String localIP;
-        String ServerIP = "172.18.141.251";
+//      String ServerIP = "23.98.34.182";
+//      int ServerPort = 8000;
+        String ServerIP = "172.18.158.39";
+        int ServerPort = 6788;
         List onlineList = new LinkedList();
         static public String username = new String();
         static public boolean connecting = false;
@@ -33,14 +36,14 @@ public class Client{
         /*connect and send hello*/
         public boolean hello() throws Exception{
                 
-                clientSocket = new Socket(ServerIP,6788);
+                clientSocket = new Socket(ServerIP,ServerPort);
                 outToServer = new DataOutputStream(clientSocket.getOutputStream());
                 inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 
                 InetAddress addr = InetAddress.getLocalHost();
                 localIP = addr.getHostAddress().toString();
                 
-                HelloMINET helloMINET = new HelloMINET(ServerIP);
+                HelloMINET helloMINET = new HelloMINET(ServerIP + ":" + ServerPort);
                 toServer = helloMINET.getContent();
                 
                 outToServer.writeBytes(toServer + "\n");
@@ -48,7 +51,7 @@ public class Client{
                 {
                         fromServer = inFromServer.readLine();
                         if(fromServer != null){
-                                String checkHello = "MIRO" + " " + ServerIP;
+                                String checkHello = "MIRO" + " " + ServerIP + ":" + ServerPort;
                                 if(fromServer.equals(checkHello))
                                         return true;
                                 else return false;
@@ -255,20 +258,24 @@ public class Client{
         	
         	String []P2PaddrSp = P2Paddr.split(" ");
         	P2Pip = P2PaddrSp[0];
-        	P2Psocket = new Socket(P2Pip,localP2PPort); 
+        	P2Pport = P2PaddrSp[1];
+        	int Pport = Integer.parseInt(P2Pport);
+        	System.out.println(P2Pip + Pport);
+        	P2Psocket = new Socket(P2Pip,Pport); 
+        	System.out.println(P2Pip + Pport);
         	outToP2PServer = new DataOutputStream(P2Psocket.getOutputStream());
         	inFromP2PServer = new BufferedReader(new InputStreamReader(P2Psocket.getInputStream()));
         	
-        	HelloMINET helloP2P = new HelloMINET(P2Pip);
+        	HelloMINET helloP2P = new HelloMINET(P2Pip + " " + localP2PPort);
         	String helloStr = helloP2P.getContent();
         	
-        	outToP2PServer.writeBytes(helloStr + '\n');
+        	outToP2PServer.writeBytes(helloStr + "\n");
         	System.out.println(helloStr);
         	String fromP2PServer = new String();
         	while (true){
         		fromP2PServer = inFromP2PServer.readLine();
         		if (fromP2PServer != null){
-        			String checkHello = "MIRO" + " " + P2Pip;
+        			String checkHello = "MIRO" + " " + P2Pip + " " + localP2PPort;
         			System.out.println(checkHello);
         			if(fromP2PServer.equals(checkHello)){
         				chating_user_list.put(uname, P2Psocket);
@@ -288,10 +295,10 @@ public class Client{
             int content_length = mail.length();
             mess += "Date" + " " + DateStr + "Content-Length" + " " + content_length + "\r\n";
             mess += "Content-Type" + " " + "text/html" + " " + "charset" + " " + "ISO-8859-1" + "\r\n";
-            mess += "\r\n" + mail; 
+            mess += "\r\n" + mail + "\r\n"; 
             try{
             	outToP2PServer = new DataOutputStream(P2Psocket.getOutputStream());
-            	outToP2PServer.writeBytes(mess + '\n');
+            	outToP2PServer.writeBytes(mess + "\n");
             }catch (IOException e){
             	e.printStackTrace();
             }
@@ -375,11 +382,13 @@ public class Client{
     	*/
         private String handshake(String sentence, Socket connectionSocket){
         	String Status = "";
-
+        	String host_info_port = new String();
             Status = sentence.replace("MINET", "MIRO");
             
+            String []host_info = sentence.split(" ");
             String clientIP = connectionSocket.getInetAddress().getHostAddress();
-
+            host_info_port = host_info[2];
+            
         	String P2Pname = new String();
         	Set<Map.Entry<String, String>> allSet=userlist.entrySet();
         	Iterator<Map.Entry<String, String>> iter=allSet.iterator();
@@ -387,37 +396,43 @@ public class Client{
         		Map.Entry<String, String> me=iter.next();
         		String temp = me.getValue();
         		String []P2PaddrSp = temp.split(" ");
-        		if (clientIP.equals(P2PaddrSp[0])){
+        		if (clientIP.equals(P2PaddrSp[0]) && host_info_port.equals(P2PaddrSp[1]+"\r\n")){
         			 P2Pname = me.getKey();
         			 break;
         		}
  	        }
         	chating_user_list.put(P2Pname, connectionSocket);
-        	
             return Status;
         }
         
         private void P2Pmessage(String sentence, Socket connectionSocket) throws IOException{
         	String clientIP = connectionSocket.getInetAddress().getHostAddress();
+        	
         	Set<Map.Entry<String, Socket>> allSet=chating_user_list.entrySet();
         	Iterator<Map.Entry<String, Socket>> iter=allSet.iterator();
         	String P2Pname = new String();
+        	String []options = sentence.split("\r\n");
+        	String []host_info = options[0].split(" ");
+        	String clientName = host_info[2];
         	while(iter.hasNext()){
         		Map.Entry<String, Socket> me=iter.next();
         		Socket temp = me.getValue();
         		String tempIP = temp.getInetAddress().getHostAddress();
-        		if (clientIP.equals(tempIP)){
-        			 P2Pname = me.getKey();
+        		String tempName = me.getKey();
+        		int tempPort = temp.getLocalPort();
+        		if (clientIP.equals(tempIP) && clientName.equals(tempName)){
+        			 P2Pname = tempName;
         			 break;
         		}
  	        }
-        	
-        	String []options = sentence.split("\r\n");
-        	String []content_info = options[1].split(" ");
-        	String length_temp = content_info[3];
-        	int length = Integer.parseInt(length_temp);
-            
-        	System.out.println(P2Pname + ": " + options[3]);
+        	if (P2Pname == null)
+        		System.out.println("Wrong Username!");
+        	else{
+        		String []content_info = options[1].split(" ");
+        		String length_temp = content_info[3];
+        		int length = Integer.parseInt(length_temp);
+        		System.out.println(P2Pname + ": " + options[4]);
+        	}
         }
         
         public static void main(String argv[]) throws Exception{
