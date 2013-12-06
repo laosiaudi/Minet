@@ -220,7 +220,7 @@ public class Server{
         else{
             if (options[1].equals("LOGIN"))
                 return 2;
-            else if (options[1].equals("GETLIST"))
+            else if (options[1].equals("GETLIST\r"))
                 return 3;
             else if (options[1].equals("LEAVE"))
                 return 4;
