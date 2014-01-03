@@ -5,6 +5,23 @@ Minet
 Computer Network Course Project  
   
 Run:  
+   Server: sh server.sh  
+   Client: sh client.sh  
+   **IP address of Server is set to 127.0.0.1 by default**  
+   **After you change the IP address, run rebuild.sh to rebuild it please**  
+
+
+ScreenShot:  
+  ![github screen1](/images/screen1.png)  
+  ![github screen2](/images/screen2.png)  
+  ![github screen3](/images/screen3.png)  
+  ![github screen4](/images/screen4.png)  
+  ![github screen4](/images/screen5.png)  
+  ![github screen4](/images/screen6.png)  
+
+
+MainPage:  
+  http://laosiaudi.github.io/Minet
   
   
 ===  
@@ -18,5 +35,7 @@ Run:
  2013-12-01 01:17 Server增加一个函数与变量 By Cai Lao  
  2013-12-01 11:45 Server修改读取用户端消息方法并分割消息 By Lao  
  2013-12-01 15:16 Server 心跳检测完成  By Lao  
- **2013-12-01 21:30 Client login修改完成 By Haoran**  
- **2014-01-03 16:00 项目完成
+ 2013-12-01 21:30 Client login修改完成 By Haoran  
+ 2014-01-02 16:00 完美支持各种文件类型的传输 By Caijin，HuangMin
+ 2014-01-02 17:00 增加中文支持 By HuangMin
+ **2014-01-03 16:00 项目完成**
