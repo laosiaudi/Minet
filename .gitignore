@@ -3,6 +3,4 @@
 # FILE:     .gitignore
 # 2013 @laosiaudi All rights reserved
 # CREATED:  2014-01-03 16:46:49
-# MODIFIED: 2014-01-03 16:49:06
-*.class
-src/*.class
+# MODIFIED: 2014-01-04 00:46:24
