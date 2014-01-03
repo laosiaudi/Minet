@@ -179,8 +179,7 @@ public class Server{
             System.out.println("---------------------------------");
             Socket _socket = online_user_list.get(key);
             DataOutputStream outToClient = new DataOutputStream(_socket.getOutputStream());
-            outToClient.writeUTF(status + '\n');
-            outToClient.flush();
+            outToClient.writeBytes(status + '\n');
         }
     }catch(Exception e){
             e.printStackTrace();
@@ -274,8 +273,7 @@ public class Server{
                 Socket _socket = online_user_list.get(key);
                 System.out.println("username ---"+key);
                 DataOutputStream outToClient = new DataOutputStream(_socket.getOutputStream());
-                outToClient.writeUTF(status + '\n');
-                outToClient.flush();
+                outToClient.writeBytes(status + '\n');
             }
         }catch(Exception e){e.printStackTrace();}  
 
@@ -293,18 +291,15 @@ public class Server{
                 String User_Name ="";
                 try{
                     timer.purge();
-                    DataInputStream inFromClient = new DataInputStream(connectionSocket.getInputStream());
+                    BufferedInputStream inFromClient = new BufferedInputStream(connectionSocket.getInputStream());
                     DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
                     while (flag_){
                         String clientSentence;
-                        while ((clientSentence = inFromClient.readUTF())==null && clientSentence.length()<=0){
-                         System.out.println("--------");
-                        }
-                        /*StringBuilder temp = new StringBuilder();
+                        StringBuilder temp = new StringBuilder();
                         int ch;
                         boolean flag = false;
                         int pre = '\0';
-                        while(0 <= (ch = inFromClient.readUTF())) {
+                        while(0 <= (ch = inFromClient.read())) {
                             
                             if (ch == '\n' && pre == '\n')
                                 break;
@@ -312,7 +307,6 @@ public class Server{
                             pre = ch;
                         }
                         clientSentence = temp.toString();
-                        System.out.println(clientSentence);*/
                         System.out.println(clientSentence);
                         int state = action(clientSentence);
                         if (state == 2)
@@ -321,24 +315,19 @@ public class Server{
                         switch (state) {
                             case 1:
                                 Status = handshake(clientSentence);
-                                outToClient.writeUTF(Status + '\n');
-                                outToClient.flush();
+                                outToClient.writeBytes(Status + '\n');
                                 break;
                             case 2:
                                 Status = user_log_in(clientSentence, connectionSocket);
-                                outToClient.writeUTF(Status + '\n');
-                                outToClient.flush();
+                                outToClient.writeBytes(Status + '\n');
                                 if (flag == false){
                                     Status = send_list();
-                                    outToClient.writeUTF(Status + '\n');
-                                    outToClient.flush();
-
+                                    outToClient.writeBytes(Status + '\n');
                                 }
                                 break;
                             case 3:
                                 Status = send_list();
-                                outToClient.writeUTF(Status + '\n');
-                                outToClient.flush();
+                                outToClient.writeBytes(Status + '\n');
                                 break;
                             case 4:
                                 Status = user_log_out(clientSentence, connectionSocket);

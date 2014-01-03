@@ -16,7 +16,7 @@ import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.DataInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Iterator;
@@ -37,6 +37,7 @@ import java.awt.event.KeyEvent;
 
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import java.awt.Font;
 
 public class personal extends JFrame {
 	static private Client clientOb;
@@ -98,6 +99,7 @@ public class personal extends JFrame {
 						
 						Socket p2psocket = clientOb.chating_user_list.get(name);
 						p2p = new p2pchat(clientOb,name,p2psocket); 
+						
 						p2p.setTitle(name);
 						p2p.setVisible(true);
 						
@@ -133,6 +135,7 @@ public class personal extends JFrame {
 		contentPane.add(btnNewButton);
 		String textArea_text = ""; 
 		JButton btnEnter = new JButton("enter");
+		btnEnter.setFont(new Font("Monaco", btnEnter.getFont().getStyle(), 13));
 		btnEnter.addActionListener(new ActionListener(){
 			
 			public void actionPerformed(ActionEvent e) {
@@ -162,19 +165,11 @@ public class personal extends JFrame {
 	                    while (clientOb.connecting){
 	                        connectionSocket = clientOb.welcomeSocket.accept();
 	                        //process(clientOb.connectionSocket);
-	                        BufferedReader inFromP2P = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+	                        DataInputStream inFromP2P = new DataInputStream(connectionSocket.getInputStream());
 	                        DataOutputStream outToP2P = new DataOutputStream(connectionSocket.getOutputStream());
 	                        String sentence;
-	                        StringBuilder temp = new StringBuilder();
-	                        int ch;
-	                        int pre = '\0';
-	                        while ( 0 <= (ch = inFromP2P.read())){
-	                        if (ch == '\n' && pre == '\n')
-	                             break;
-	                             temp.append((char)ch);
-	                             pre = ch;
-	                         }
-	                         sentence = temp.toString();
+	                        while ((sentence = inFromP2P.readUTF())==null & sentence.length()<=0){
+                        	}
 	                         System.out.println(sentence);
 	                         int state = clientOb.action(sentence);
 	                         String status = "";
@@ -183,7 +178,7 @@ public class personal extends JFrame {
 	                            	System.out.println(sentence);
 	                            	status = clientOb.handshake(sentence,connectionSocket);
 	                            	System.out.println(status);
-	                            	outToP2P.writeBytes(status + '\n');
+	                            	outToP2P.writeUTF(status + '\n');
 	                            	clientOb.heartBeat(connectionSocket);
 	                            	break;
 	                            default:
@@ -210,13 +205,15 @@ public class personal extends JFrame {
     			try{
     				while(true){
     					
-    					while((clientOb.fromServer = clientOb.inFromServer.readLine())!=null && clientOb.fromServer.length()>0)
+    					while((clientOb.fromServer = clientOb.inFromServer.readUTF())!=null && clientOb.fromServer.length()>0)
         				{
     						
-    						int i = 0;
-        					String []options = clientOb.fromServer.split(" ");
+    						// int i = 0;
+        					String []options = clientOb.fromServer.split("\r\n");
+        					options = options[0].split(" ");
         					System.out.println(clientOb.fromServer);
             		        if (options[1].equals("LIST")){
+            		        	System.out.println("----------------------inList");
             		        	clientOb.listOnline();
             		        	dlm.clear();
             		        	for(String key : clientOb.userlist.keySet()){

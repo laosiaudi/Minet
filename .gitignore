@@ -1,0 +1,8 @@
+# Text File
+# AUTHOR:   LaoSi
+# FILE:     .gitignore
+# 2013 @laosiaudi All rights reserved
+# CREATED:  2014-01-03 16:46:49
+# MODIFIED: 2014-01-03 16:49:06
+*.class
+src/*.class

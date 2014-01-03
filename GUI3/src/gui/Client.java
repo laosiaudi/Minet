@@ -17,13 +17,13 @@ public class Client{
         ServerSocket welcomeSocket;
         DataOutputStream outToServer;
         DataOutputStream outToP2PServer;
-        BufferedReader inFromServer;
-        BufferedReader inFromUser;
-        BufferedReader inFromP2PServer;
+        DataInputStream inFromServer;
+        DataInputStream inFromUser;
+        DataInputStream inFromP2PServer;
         String localIP;
 //      String ServerIP = "23.98.34.182";
 //      int ServerPort = 8000;
-        String ServerIP = "10.4.2.101";
+        String ServerIP = "10.4.12.96";
         int ServerPort = 6788;
         List onlineList = new LinkedList();
         static public String username = new String();
@@ -46,7 +46,7 @@ public class Client{
                 System.out.println(ServerIP);
                 clientSocket = new Socket(ServerIP,ServerPort);
                 outToServer = new DataOutputStream(clientSocket.getOutputStream());
-                inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                inFromServer = new DataInputStream(clientSocket.getInputStream());
                 
                 InetAddress addr = InetAddress.getLocalHost();
                 localIP = addr.getHostAddress().toString();
@@ -55,12 +55,14 @@ public class Client{
                 toServer = helloMINET.getContent();
                 welcomeSocket = new ServerSocket(0);
                 localP2PPort = welcomeSocket.getLocalPort();
-                outToServer.writeBytes(toServer + "\n");
+                outToServer.writeUTF(toServer + "\n");
+                outToServer.flush();
                 while (true)
                 {
-                        fromServer = inFromServer.readLine();
-                        if(fromServer != null){
+                        fromServer = inFromServer.readUTF();
+                        if(fromServer != null && fromServer.length()>=0){
                                 String checkHello = "MIRO" + " " + ServerIP + ":" + ServerPort;
+                                fromServer = fromServer.split("\r\n")[0];
                                 if(fromServer.equals(checkHello))
                                         return true;
                                 else return false;
@@ -78,27 +80,21 @@ public class Client{
                                 toServer = loginProtocol.getContent();
                                 outToServer = new DataOutputStream(clientSocket.getOutputStream());
                                 
-                                inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                                inFromServer = new DataInputStream(clientSocket.getInputStream());
                                 
-                                outToServer.writeBytes(toServer + "\n");
-                                
+                                outToServer.writeUTF(toServer + "\n");
+                                outToServer.flush();
                                 StringBuilder temp = new StringBuilder();
-                                int pre = '\0';
-                                int ch;
-                                while(0 <= (ch = inFromServer.read())) {
-                    
-                    if (ch == '\n' && pre == '\r')
-                        break;
-                    temp.append((char)ch);
-                    pre = ch;
-                }
-                                fromServer = temp.toString();
+                             
+                                while((fromServer = inFromServer.readUTF())==null && fromServer.length()<=0) {
+				                }
                                 
                                 System.out.println(fromServer);
                                 
                                 if (fromServer != null){
-                                        String []ifsuccess = fromServer.split(" ");
-                                        if (ifsuccess[2].equals("1\r"))
+                                    String []options = fromServer.split("\r\n");
+                                        String []ifsuccess = options[0].split(" ");
+                                        if (ifsuccess[2].equals("1"))
                                                 return true;
                                         else
                                                 return false;
@@ -113,32 +109,41 @@ public class Client{
 
         /*process the LIST protocol from the second line to the end, and list online friend to the user*/
         public void listOnline() throws IOException{
-        	while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0){
-        	}
         	userlist.clear();
-        	while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0){
-            	String []user = fromServer.split(" ");
-            	userlist.put(user[0],user[1]+" "+user[2]);
-        	}
+            if(fromServer.indexOf("\r\n\r\n\r\n\r\n")!=-1){
+            	System.out.println("nouser--------------");
+            	return ;
+            }
+        	String []data = fromServer.split("\r\n\r\n");
+        	System.out.println("++++data0"+data[0]);
+            String []userLine = data[1].split("\r\n");
+            for(String users : userLine){
+            	System.out.println(users+"--------");
+            	if(!users.equals("\n")){
+                String []user = users.split(" ");
+                userlist.put(user[0],user[1]+" "+user[2]);
+            	}
+            }
+            
         	Set<Map.Entry<String, String>> allSet=userlist.entrySet();
         	Iterator<Map.Entry<String, String>> iter=allSet.iterator();
-        	System.out.println("This is the user list:\n");
-        	        while(iter.hasNext()){
-        	            Map.Entry<String, String> me=iter.next();
-        	             System.out.println(me.getKey()+ " "+me.getValue());
-        	        }
+        	System.out.println("-------This is the user list:---------");
+	        while(iter.hasNext()){
+	            Map.Entry<String, String> me=iter.next();
+	             System.out.println(me.getKey()+ " "+me.getValue());
+	        }
+            System.out.println("--------user list end----------");
+
         }
         
         /*process the UPDATE protocol from the second line to the end, and change the online friend list*/
         public void updateOnline() throws IOException{
         	System.out.println(fromServer);
-            String []options = fromServer.split(" ");
+            String []options = fromServer.split("\r\n");
+            options = options[0].split(" ");
             String status = options[2];
             String updateUserName = options[3];
             String []updateUserInfo = options[4].split(",");
-            while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0){
-                    System.out.println(fromServer);
-            }
             if (status.equals("1")){
                     userlist.put(updateUserName, updateUserInfo[0]+" "+updateUserInfo[1]);
             }
@@ -147,22 +152,26 @@ public class Client{
             }
             Set<Map.Entry<String, String>> allSet=userlist.entrySet();
             Iterator<Map.Entry<String, String>> iter=allSet.iterator();
-            System.out.println("This is the user list:\n");
-                    while(iter.hasNext()){
-                        Map.Entry<String, String> me=iter.next();
-                         System.out.println(me.getKey()+ " "+me.getValue());
-                    }
+            System.out.println("-------This is the user list:---------");
+            while(iter.hasNext()){
+                Map.Entry<String, String> me=iter.next();
+                 System.out.println(me.getKey()+ " "+me.getValue());
+            }
+            System.out.println("--------user list end----------");
         }
         
         /*process the CSMESSAGE protocol from the second line to the end, and change the online friend list*/
         public void csMessage() throws IOException{
-        	String []options = fromServer.split(" ");
-        	String fromUserName = options[3];
-        	while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0){
-        	}
-        	while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0){
-            	System.out.println(fromUserName + "send to all: \"" + fromServer +"\"\n");
-        	}
+        	String []options = fromServer.split("\r\n");
+            
+        	String fromUserName = options[0].split(" ")[2];
+            int i = 0;
+        	for(String item : options){
+                if (item.length()==0)
+                    break;
+                i+=1;
+            }
+            System.out.println(fromUserName + "send to all: \"" + options[i+1] +"\"\n");
         }
         
         public void P2PsendFile(String uname,final String FilePath) throws Exception{
@@ -182,7 +191,8 @@ public class Client{
                 final ServerSocket FileSocket = new ServerSocket(0);
                 int fileSendPort = FileSocket.getLocalPort();
                 P2PFile P2PFileProtocol = new P2PFile(username, fileSendPort);
-                dos.writeBytes(P2PFileProtocol.getContent()+'\n');
+                dos.writeUTF(P2PFileProtocol.getContent()+'\n');
+                dos.flush();
                 
                 new Thread(new Runnable(){
                     public void run(){
@@ -285,7 +295,8 @@ public class Client{
         /*user Leave and exit the system*/
         public void userLeave() throws IOException{
         	Leave leaveProtocol = new Leave(username);
-        	outToServer.writeBytes(leaveProtocol.getContent() + "\n");
+        	outToServer.writeUTF(leaveProtocol.getContent() + "\n");
+        	outToServer.flush();
         	System.exit(0);
         }
         
@@ -295,13 +306,15 @@ public class Client{
          * */
         public void sendToAll(String message) throws IOException{
         	SendToAll sendToAllProtocol = new SendToAll(username, message);
-        	outToServer.writeBytes(sendToAllProtocol.getContent() + "\n");
+        	outToServer.writeUTF(sendToAllProtocol.getContent() + "\n");
+        	outToServer.flush();
         }
         
         /*send GETLIST protocol to get the all online list*/
         public void getOnlineList() throws IOException{
         	GetList getListProtocol = new GetList();
-        	outToServer.writeBytes(getListProtocol.getContent() + "\n");
+        	outToServer.writeUTF(getListProtocol.getContent() + "\n");
+        	outToServer.flush();
         }
         
         
@@ -311,10 +324,11 @@ public class Client{
         		public void run(){
         			try{
         				while(true){
-        					while((fromServer = inFromServer.readLine())!=null && fromServer.length()>0)
+        					while((fromServer = inFromServer.readUTF())!=null && fromServer.length()>0)
             				{
         						System.out.println(fromServer);
-            					String []options = fromServer.split(" ");
+            					String []options = fromServer.split("\r\n");
+                                options = options[0].split(" ");
                 		        if (options[1].equals("LIST"))
                 		        	listOnline();
                 		        else if (options[1].equals("UPDATE"))
@@ -355,22 +369,23 @@ public class Client{
         System.out.println(P2PIp+P2PPort);
         P2Psocket = new Socket(P2PIp,P2PPort);
         outToP2PServer = new DataOutputStream(P2Psocket.getOutputStream());
-        inFromP2PServer = new BufferedReader(new InputStreamReader(P2Psocket.getInputStream()));
+        inFromP2PServer = new DataInputStream(P2Psocket.getInputStream());
 
         HelloMINET helloP2P = new HelloMINET(P2PIp + " " + localP2PPort);
         String helloStr = helloP2P.getContent();
-        outToP2PServer.writeBytes(helloStr + "\n");
+        outToP2PServer.writeUTF(helloStr + "\n");
+        outToP2PServer.flush();
 
         System.out.println(helloStr);
             String fromP2PServer = new String();
             while (true){
-                fromP2PServer = inFromP2PServer.readLine();
+                fromP2PServer = inFromP2PServer.readUTF();
                 System.out.println("fromServer"+fromP2PServer);
                 // System.out.println(fromP2PServer.size());
                 if (fromP2PServer != null){
                     String checkHello = "MIRO" + " " + P2PIp + " " + localP2PPort;
                     System.out.println("check " + checkHello);
-                    if(fromP2PServer.equals(checkHello)){
+                    if(fromP2PServer.split("\r\n\n\n")[0].equals(checkHello)){
                         chating_user_list.put(uname, P2Psocket);
                         //process(P2Psocket);
                         heartBeat(P2Psocket);
@@ -419,7 +434,9 @@ public class Client{
         try{
         	
             DataOutputStream outTo = new DataOutputStream(goalSocket.getOutputStream());
-            outTo.writeBytes(mess + "\n");
+            System.out.println("sending messing" + mess);
+            outTo.writeUTF(mess + "\n");
+            outTo.flush();
         }catch (IOException e){
             e.printStackTrace();
         }
@@ -435,7 +452,8 @@ public class Client{
             new TimerTask() { 
                 public void run(){ 
                     try {
-                        outTo.writeBytes(sendBeat + "\n");
+                        outTo.writeUTF(sendBeat + "\n");
+                        outTo.flush();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -457,26 +475,20 @@ public class Client{
                     
 
                     timer.purge();
-                    BufferedReader inFromP2P = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+                    DataInputStream inFromP2P = new DataInputStream(connectionSocket.getInputStream());
                     DataOutputStream outToP2P = new DataOutputStream(connectionSocket.getOutputStream());
                     while (flag){
                         String sentence;
-                        StringBuilder temp = new StringBuilder();
-                        int ch;
-                        int pre = '\0';
-                        while ( 0 <= (ch = inFromP2P.read())){
-                            if (ch == '\n' && pre == '\n')
-                                break;
-                            temp.append((char)ch);
-                            pre = ch;
+                        while ((sentence = inFromP2P.readUTF())==null & sentence.length()<=0){
                         }
-                        sentence = temp.toString();
+                        
                         int state = action(sentence);
                         String status = "";
                         switch(state){
                         case 1:
                             status = handshake(sentence,connectionSocket);
-                            outToP2P.writeBytes(status + '\n');
+                            outToP2P.writeUTF(status + '\n');
+                            outToP2P.flush();
                             heartBeat(connectionSocket);
                             break;
                         case 2:
@@ -545,7 +557,7 @@ public class Client{
             Map.Entry<String, String> me=iter.next();
             String temp = me.getValue();
             String []P2PaddrSp = temp.split(" ");
-            if (clientIP.equals(P2PaddrSp[0]) && host_info_port.equals(P2PaddrSp[1]+"\r\n")){
+            if (clientIP.equals(P2PaddrSp[0]) && host_info_port.split("\r\n\n")[0].equals(P2PaddrSp[1])){
                  P2Pname = me.getKey();
                  break;
             }

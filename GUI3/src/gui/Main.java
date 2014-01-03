@@ -6,6 +6,7 @@ import javax.swing.JTextField;
 
 import java.awt.BorderLayout;
 
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JTextPane;
 import javax.swing.JLabel;
@@ -34,8 +35,10 @@ import java.util.Scanner;
 import java.awt.Color;
 
 import javax.swing.UIManager;
+
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.Font;
 
 public class Main {
 
@@ -44,6 +47,7 @@ public class Main {
 	private String user_name;
 	private Client clientOb = new Client() ;
 	private personal per;
+	private About about;
 
 	/**
 	 * Launch the application.
@@ -73,9 +77,9 @@ public class Main {
 		try{
 			return clientOb.hello();
 		}catch(Exception e){
-			
+			return false;
 		}
-		return true;
+		
 	}
 	
 	boolean login(){
@@ -93,6 +97,7 @@ public class Main {
 	 */
 	private void initialize() {
 		frmMinet = new JFrame();
+		frmMinet.getContentPane().setFont(new Font("Monaco", frmMinet.getContentPane().getFont().getStyle(), 13));
 		
 		frmMinet.setTitle("Minet");
 		frmMinet.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -102,7 +107,7 @@ public class Main {
 		
 		frmMinet.getContentPane().setLayout(null);
 		
-		JLabel lblNewLabel = new JLabel("user_name");
+		JLabel lblNewLabel = new JLabel("用户名");
 		lblNewLabel.setBounds(67, 115, 91, 16);
 		frmMinet.getContentPane().add(lblNewLabel);
 		
@@ -117,7 +122,7 @@ public class Main {
 						clientOb.username = user_name;
 						Client.connecting = hello();
 						if (Client.connecting == false){
-							JOptionPane.showMessageDialog(null, "connection error!");
+							JOptionPane.showMessageDialog(null, "服务器不在线");
 						}
 						else{
 							System.out.println("connection success!");
@@ -136,14 +141,14 @@ public class Main {
 								//System.out.println("yessss");
 								
 								
-								new Thread(new Runnable(){
+								/*new Thread(new Runnable(){
 			                        public void run(){
 			                        	try{
-			                        		ServerSocket welcomeSocket;
+			                        		//ServerSocket welcomeSocket;
 			        						Socket connectionSocket;
-			    							welcomeSocket = new ServerSocket(6789);
+			    							//welcomeSocket = new ServerSocket(6789);
 			    							while (Client.connecting){
-			    								connectionSocket = welcomeSocket.accept();
+			    								connectionSocket = clientOb.welcomeSocket.accept();
 			    								
 			    								clientOb.process(connectionSocket);
 			    							}
@@ -152,11 +157,11 @@ public class Main {
 			    						}
 			                        }
 			                               
-			                        }).start();
+			                        }).start();*/
 								
 							}
 							else{
-								JOptionPane.showMessageDialog(null, "login error!");
+								JOptionPane.showMessageDialog(null, "登录错误!");
 							}
 						}
 				 }
@@ -166,9 +171,21 @@ public class Main {
 		frmMinet.getContentPane().add(textField);
 		textField.setColumns(10);
 		
-		JButton btnLogin = new JButton("login");
-		btnLogin.setBounds(178, 188, 117, 29);
+		JButton btnLogin = new JButton("登录");
+		btnLogin.setBounds(55, 183, 117, 29);
 		frmMinet.getContentPane().add(btnLogin);
+		
+		JButton button = new JButton("\u5173\u4E8E\u6211\u4EEC");
+		button.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				About dialog = new About();
+				dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+				dialog.setVisible(true);
+			}
+		});
+		button.setBounds(257, 183, 117, 29);
+		frmMinet.getContentPane().add(button);
 		frmMinet.setVisible(true);
 		btnLogin.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0){
@@ -178,13 +195,14 @@ public class Main {
 				
 				try{
 					System.out.println(user_name.getBytes());
-				clientOb.username = new String(user_name.getBytes(),"GBK");
-				System.out.println(new String(user_name.getBytes(),"GBK"));
+				//clientOb.username = new String(user_name.getBytes(),"GBK");
+				//System.out.println(new String(user_name.getBytes(),"GBK"));
+				clientOb.username = user_name;
 				}catch(Exception ee){}
 				
 				Client.connecting = hello();
 				if (Client.connecting == false){
-					JOptionPane.showMessageDialog(null, "connection error!");
+					JOptionPane.showMessageDialog(null, "服务器不在线！");
 				}
 				else{
 					System.out.println("connection success!");
@@ -202,14 +220,14 @@ public class Main {
 						//System.out.println("yessss");
 						
 						
-						new Thread(new Runnable(){
+						/*new Thread(new Runnable(){
 	                        public void run(){
 	                        	try{
-	                        		ServerSocket welcomeSocket;
+	                        		//ServerSocket welcomeSocket;
 	        						Socket connectionSocket;
-	    							welcomeSocket = new ServerSocket(6789);
+	    							//welcomeSocket = new ServerSocket(6789);
 	    							while (Client.connecting){
-	    								connectionSocket = welcomeSocket.accept();
+	    								connectionSocket = clientOb.welcomeSocket.accept();
 	    								
 	    								clientOb.process(connectionSocket);
 	    							}
@@ -218,11 +236,11 @@ public class Main {
 	    						}
 	                        }
 	                               
-	                        }).start();
+	                        }).start();*/
 						
 					}
 					else{
-						JOptionPane.showMessageDialog(null, "login error!");
+						JOptionPane.showMessageDialog(null, "登录错误!");
 					}
 				}
 				

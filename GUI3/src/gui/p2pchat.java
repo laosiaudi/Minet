@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.TextArea;
 import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +27,7 @@ import javax.swing.JButton;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.Font;
 
 public class p2pchat extends JFrame {
 
@@ -88,6 +90,8 @@ public class p2pchat extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		textArea = new JTextArea();
+		textArea.setEditable(false);
+		textArea.setFont(new Font("Monaco", textArea.getFont().getStyle(), 13));
 		textField = new JTextField();
 		
 		 new Thread(new Runnable(){
@@ -97,8 +101,8 @@ public class p2pchat extends JFrame {
 	                try{
 	                    
 	                	  System.out.println("-----------------");
-	                    //timer.purge();
-	                    BufferedReader inFromP2P = new BufferedReader(new InputStreamReader(_socket.getInputStream()));
+	                     timer.purge();
+	                    /*BufferedReader inFromP2P = new BufferedReader(new InputStreamReader(_socket.getInputStream()));
 	                    DataOutputStream outToP2P = new DataOutputStream(_socket.getOutputStream());
 	                    while (flag){
 	                        String sentence;
@@ -113,7 +117,14 @@ public class p2pchat extends JFrame {
 	                            pre = ch;
 	                        }
 	                        System.out.println("dddddddddddddddddd");
-	                        sentence = temp.toString();
+	                        sentence = temp.toString();*/
+	                     DataInputStream inFromP2P = new DataInputStream(_socket.getInputStream());
+	                     DataOutputStream outToP2P = new DataOutputStream(_socket.getOutputStream());
+	                     while (flag){
+	                	  	
+	                        String sentence;
+	                        while ((sentence = inFromP2P.readUTF())==null & sentence.length()<=0){
+	                        }
 	                        int state = action(sentence);
 	                        String status = "";
 	                        switch(state){
@@ -135,7 +146,7 @@ public class p2pchat extends JFrame {
 	                            local.setTitle(username);
 	                            try{
 	                            	String text = clientOb.P2Pmessage(sentence,_socket);
-	                            	textArea.setText(textArea.getText()+text);
+	                            	textArea.setText(textArea.getText() + text);
 	                            }catch(Exception ee){}
 	                            
 	                            break;
@@ -194,7 +205,9 @@ public class p2pchat extends JFrame {
 							
 							textField.setText("");
 						    clientOb.sendMessage(text,username);
-						    textArea.setText(textArea.getText()+clientOb.username+":"+"\n"+text+"\n");
+						    System.out.println("Sending!!!!!!!!!!!!!");
+						    System.out.println(text);
+						    textArea.setText(textArea.getText()+ clientOb.username+":"+"\n"+text+"\n");
 						    
 						    textArea.setCaretPosition(textArea.getDocument().getLength()-1);
 							}
@@ -216,7 +229,7 @@ public class p2pchat extends JFrame {
 		contentPane.add(scrollPane);
 		scrollPane.setViewportView(textArea);
 		
-		JButton btnSendFile = new JButton("Send File");
+		JButton btnSendFile = new JButton("·¢ËÍÎÄ¼þ..");
 		btnSendFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				JFileChooser fileChooser = new JFileChooser();

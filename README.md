@@ -1,19 +1,11 @@
 Minet
+
 ===
 
 Computer Network Course Project  
   
-
-
-ServerTest.java  ClientTest.java为简单的cs模型demo，  
-实现Client发送消息给Server，在Server上打印出来  
-**服务端已部署在23.98.34.182 端口8000上**  
-
-运行方法  
-Linux下: terminal1--sh testServer.sh  
-         terminal2--sh testClient.sh  
-Windows: 双击ClientWin.bat Server.bat  
-
+Run:  
+  
   
 ===  
   **LOG**:  
@@ -27,3 +19,4 @@ Windows: 双击ClientWin.bat Server.bat
  2013-12-01 11:45 Server修改读取用户端消息方法并分割消息 By Lao  
  2013-12-01 15:16 Server 心跳检测完成  By Lao  
  **2013-12-01 21:30 Client login修改完成 By Haoran**  
+ **2014-01-03 16:00 项目完成
