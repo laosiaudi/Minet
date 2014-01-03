@@ -11,7 +11,7 @@ Run:
    **After you change the IP address, run rebuild.sh to rebuild it please**  
 
 **On Linux,there will be some problems with Chinese fonts, please refer to this link to**  
-solve it http://wtz123.iteye.com/blog/1174159  
+**solve it http://wtz123.iteye.com/blog/1174159**  
 
 ScreenShot:  
   ![github screen1](/images/screen1.png)  
@@ -39,5 +39,5 @@ MainPage:
  2013-12-01 15:16 Server 心跳检测完成  By Lao  
  2013-12-01 21:30 Client login修改完成 By Haoran  
  2014-01-02 16:00 完美支持各种文件类型的传输 By Caijin，HuangMin
- 2014-01-02 17:00 增加中文支持 By HuangMin
+ 2014-01-02 17:00 增加中文支持 By HuangMin  
  **2014-01-03 16:00 项目完成**
