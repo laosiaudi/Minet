@@ -10,6 +10,8 @@ Run:
    **IP address of Server is set to 127.0.0.1 by default**  
    **After you change the IP address, run rebuild.sh to rebuild it please**  
 
+**On Linux,there will be some problems with Chinese fonts, please refer to this link to**  
+solve it http://wtz123.iteye.com/blog/1174159  
 
 ScreenShot:  
   ![github screen1](/images/screen1.png)  
