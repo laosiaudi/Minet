@@ -21,8 +21,8 @@ public class Client{
         DataInputStream inFromUser;
         DataInputStream inFromP2PServer;
         String localIP;
-//      String ServerIP = "23.98.34.182";
-//      int ServerPort = 8000;
+// String ServerIP = "23.98.34.182";
+// int ServerPort = 8000;
         String ServerIP = "127.0.0.1";
         int ServerPort = 6788;
         List onlineList = new LinkedList();
@@ -87,7 +87,7 @@ public class Client{
                                 StringBuilder temp = new StringBuilder();
                              
                                 while((fromServer = inFromServer.readUTF())==null && fromServer.length()<=0) {
-				                }
+                                 }
                                 
                                 System.out.println(fromServer);
                                 
@@ -109,36 +109,36 @@ public class Client{
 
         /*process the LIST protocol from the second line to the end, and list online friend to the user*/
         public void listOnline() throws IOException{
-        	userlist.clear();
+                userlist.clear();
             if(fromServer.indexOf("\r\n\r\n\r\n\r\n")!=-1){
-            	System.out.println("nouser--------------");
-            	return ;
+                    System.out.println("nouser--------------");
+                    return ;
             }
-        	String []data = fromServer.split("\r\n\r\n");
-        	System.out.println("++++data0"+data[0]);
+                String []data = fromServer.split("\r\n\r\n");
+                System.out.println("++++data0"+data[0]);
             String []userLine = data[1].split("\r\n");
             for(String users : userLine){
-            	System.out.println(users+"--------");
-            	if(!users.equals("\n")){
+                    System.out.println(users+"--------");
+                    if(!users.equals("\n")){
                 String []user = users.split(" ");
                 userlist.put(user[0],user[1]+" "+user[2]);
-            	}
+                    }
             }
             
-        	Set<Map.Entry<String, String>> allSet=userlist.entrySet();
-        	Iterator<Map.Entry<String, String>> iter=allSet.iterator();
-        	System.out.println("-------This is the user list:---------");
-	        while(iter.hasNext()){
-	            Map.Entry<String, String> me=iter.next();
-	             System.out.println(me.getKey()+ " "+me.getValue());
-	        }
+                Set<Map.Entry<String, String>> allSet=userlist.entrySet();
+                Iterator<Map.Entry<String, String>> iter=allSet.iterator();
+                System.out.println("-------This is the user list:---------");
+         while(iter.hasNext()){
+         Map.Entry<String, String> me=iter.next();
+         System.out.println(me.getKey()+ " "+me.getValue());
+         }
             System.out.println("--------user list end----------");
 
         }
         
         /*process the UPDATE protocol from the second line to the end, and change the online friend list*/
         public void updateOnline() throws IOException{
-        	System.out.println(fromServer);
+                System.out.println(fromServer);
             String []options = fromServer.split("\r\n");
             options = options[0].split(" ");
             String status = options[2];
@@ -162,11 +162,11 @@ public class Client{
         
         /*process the CSMESSAGE protocol from the second line to the end, and change the online friend list*/
         public void csMessage() throws IOException{
-        	String []options = fromServer.split("\r\n");
+                String []options = fromServer.split("\r\n");
             
-        	String fromUserName = options[0].split(" ")[2];
+                String fromUserName = options[0].split(" ")[2];
             int i = 0;
-        	for(String item : options){
+                for(String item : options){
                 if (item.length()==0)
                     break;
                 i+=1;
@@ -196,13 +196,13 @@ public class Client{
                 
                 new Thread(new Runnable(){
                     public void run(){
-                    	try{
-                    		fileSendSocket = FileSocket.accept();
+                            try{
+                                    fileSendSocket = FileSocket.accept();
                             sendingFile(fileSendSocket, FilePath);
-                    	}catch(Exception e){
+                            }catch(Exception e){
                             e.printStackTrace();
                         }
-                    	
+                            
                     }
                 }).start();
                     
@@ -255,7 +255,7 @@ public class Client{
             String sendFileIP = socket.getInetAddress().getHostAddress();
             int sendFilePort = Integer.parseInt(sendFilePorts);
             Socket fileRecSocket = new Socket(sendFileIP, sendFilePort);
-            receivingFile(fileRecSocket, savePath);        
+            receivingFile(fileRecSocket, savePath);
         }
 
         private void receivingFile(final Socket socket, final String savePath){
@@ -294,55 +294,55 @@ public class Client{
         }
         /*user Leave and exit the system*/
         public void userLeave() throws IOException{
-        	Leave leaveProtocol = new Leave(username);
-        	outToServer.writeUTF(leaveProtocol.getContent() + "\n");
-        	outToServer.flush();
-        	System.exit(0);
+                Leave leaveProtocol = new Leave(username);
+                outToServer.writeUTF(leaveProtocol.getContent() + "\n");
+                outToServer.flush();
+                System.exit(0);
         }
         
         /**
-         * @param message the message that user send to all user through server
-         * 
-         * */
+* @param message the message that user send to all user through server
+*
+* */
         public void sendToAll(String message) throws IOException{
-        	SendToAll sendToAllProtocol = new SendToAll(username, message);
-        	outToServer.writeUTF(sendToAllProtocol.getContent() + "\n");
-        	outToServer.flush();
+                SendToAll sendToAllProtocol = new SendToAll(username, message);
+                outToServer.writeUTF(sendToAllProtocol.getContent() + "\n");
+                outToServer.flush();
         }
         
         /*send GETLIST protocol to get the all online list*/
         public void getOnlineList() throws IOException{
-        	GetList getListProtocol = new GetList();
-        	outToServer.writeUTF(getListProtocol.getContent() + "\n");
-        	outToServer.flush();
+                GetList getListProtocol = new GetList();
+                outToServer.writeUTF(getListProtocol.getContent() + "\n");
+                outToServer.flush();
         }
         
         
         /*listen the server port*/
         private void serverListen() throws IOException{
-        	new Thread(new Runnable(){
-        		public void run(){
-        			try{
-        				while(true){
-        					while((fromServer = inFromServer.readUTF())!=null && fromServer.length()>0)
-            				{
-        						System.out.println(fromServer);
-            					String []options = fromServer.split("\r\n");
+                new Thread(new Runnable(){
+                        public void run(){
+                                try{
+                                        while(true){
+                                                while((fromServer = inFromServer.readUTF())!=null && fromServer.length()>0)
+                                            {
+                                                        System.out.println(fromServer);
+                                                    String []options = fromServer.split("\r\n");
                                 options = options[0].split(" ");
-                		        if (options[1].equals("LIST"))
-                		        	listOnline();
-                		        else if (options[1].equals("UPDATE"))
-                		        	updateOnline();
-                		        else if (options[1].equals("CSMESSAGE"))
-                		        	csMessage();
-            				}
-        				}
-			
-        			}catch(IOException e){
-        				e.printStackTrace();
-        			}
-        		}
-        	}).start();
+                                 if (options[1].equals("LIST"))
+                                         listOnline();
+                                 else if (options[1].equals("UPDATE"))
+                                         updateOnline();
+                                 else if (options[1].equals("CSMESSAGE"))
+                                         csMessage();
+                                            }
+                                        }
+                        
+                                }catch(IOException e){
+                                        e.printStackTrace();
+                                }
+                        }
+                }).start();
         }
             /*say hello */
     public boolean hello_p2p(String uname) throws IOException{
@@ -390,7 +390,7 @@ public class Client{
                         //process(P2Psocket);
                         heartBeat(P2Psocket);
                         return true;
-                    }else 
+                    }else
                         return false;
                 }
             }
@@ -406,7 +406,7 @@ public class Client{
         int content_length = mail.length();
         mess += "Date" + " " + DateStr + "Content-Length" + " " + content_length + "\r\n";
         mess += "Content-Type" + " " + "text/html" + " " + "charset" + " " + "ISO-8859-1" + "\r\n";
-        mess += "\r\n" + mail + "\r\n"; 
+        mess += "\r\n" + mail + "\r\n";
 
         String P2PInfo = "";
         Set<Map.Entry<String, Socket>> allSet=chating_user_list.entrySet();
@@ -419,20 +419,20 @@ public class Client{
                 goalSocket = me.getValue();
                  break;
             }
-        //     while(iter.hasNext()){
-        //     Map.Entry<String, Socket> me=iter.next();
-        //     Socket temp = me.getValue();
-        //     String tempIP = temp.getInetAddress().getHostAddress();
-        //     String tempName = me.getKey();
-        //     int tempPort = temp.getLocalPort();
-        //     if (clientIP.equals(tempIP) && clientName.equals(tempName)){
-        //          P2Pname = tempName;
-        //          break;
-        //     }
+        // while(iter.hasNext()){
+        // Map.Entry<String, Socket> me=iter.next();
+        // Socket temp = me.getValue();
+        // String tempIP = temp.getInetAddress().getHostAddress();
+        // String tempName = me.getKey();
+        // int tempPort = temp.getLocalPort();
+        // if (clientIP.equals(tempIP) && clientName.equals(tempName)){
+        // P2Pname = tempName;
+        // break;
+        // }
         // }
         }
         try{
-        	
+                
             DataOutputStream outTo = new DataOutputStream(goalSocket.getOutputStream());
             System.out.println("sending messing" + mess);
             outTo.writeUTF(mess + "\n");
@@ -449,8 +449,8 @@ public class Client{
             final String sendBeat = heartBeatProtocol.getContent();
             final DataOutputStream outTo = new DataOutputStream(goalSocket.getOutputStream());
             timer.schedule(
-            new TimerTask() { 
-                public void run(){ 
+            new TimerTask() {
+                public void run(){
                     try {
                         outTo.writeUTF(sendBeat + "\n");
                         outTo.flush();
@@ -461,24 +461,8 @@ public class Client{
     }
     
     /*leave P2P chat*/
-    public void leave_p2p(String uname) throws IOException{
-        Set<Map.Entry<String, Socket>> allSet=chating_user_list.entrySet();
-        Iterator<Map.Entry<String, Socket>> iter=allSet.iterator();
-        Socket goalSocket = null;
-        while(iter.hasNext()){
-            Map.Entry<String, Socket> me=iter.next();
-            String temp = me.getKey();
-            if (uname.equals(temp)){
-                goalSocket = me.getValue();
-                iter.remove();
-                 break;
-            }
-        }
-        P2PLeave P2PLeaveProtocol = new P2PLeave(username);
-        DataOutputStream outTo = new DataOutputStream(goalSocket.getOutputStream());
-        outTo.writeUTF(P2PLeaveProtocol.getContent()+'\n');
-        outTo.flush();
-        goalSocket.close();
+    public void leave_p2p() throws IOException{
+        
     }
 
     /*listen P2P socket*/
@@ -508,7 +492,8 @@ public class Client{
                             heartBeat(connectionSocket);
                             break;
                         case 2:
-                            leave_P2P_chating(sentence);
+                            status = leave_P2P_chating(sentence);
+                            flag = false;
                             break;
                         case 3:
                             System.out.println(sentence);
@@ -644,24 +629,9 @@ public class Client{
         }).start();
     }
     /*handle P2P leave*/
-    private void leave_P2P_chating(String sentence) throws IOException{
-        String []options = sentence.split("\r\n");
-        options = options[0].split(" ");
-        String leaveUser = options[2];
-        Set<Map.Entry<String, Socket>> allSet=chating_user_list.entrySet();
-        Iterator<Map.Entry<String, Socket>> iter=allSet.iterator();
-        Socket goalSocket = null;
-        while(iter.hasNext()){
-            Map.Entry<String, Socket> me=iter.next();
-            String temp = me.getKey();
-            if (leaveUser.equals(temp)){
-                goalSocket = me.getValue();
-                iter.remove();
-                 break;
-            }
-        }
-        goalSocket.close();
-    } 
+    public String leave_P2P_chating(String sentence) throws IOException{
+        return "";
+    }
     
     class Check_Beat extends TimerTask{
         private String User_Name;
@@ -695,10 +665,10 @@ public class Client{
                     username = in.next();
                     if (client.login(username)){
                             System.out.println("Login success!");
-//                                while(true){
-//                              	  client.fromServer = client.inFromServer.readLine();
-//                              	  System.out.println(client.fromServer);
-//                                 }
+// while(true){
+//          client.fromServer = client.inFromServer.readLine();
+//          System.out.println(client.fromServer);
+// }
                             client.serverListen();
                             client.heartBeat(client.clientSocket);
                             client.sendToAll("hello");
@@ -706,16 +676,16 @@ public class Client{
                           
                             // String x = in.next();
                             // if (x.equals("e")){
-                            //     client.userLeave();
+                            // client.userLeave();
                             // }
                             String P2Pname = in.next();
                             if (client.hello_p2p(P2Pname)){
-                            	System.out.println("P2P connects successfully!");
-                            	String mail = in.next();
-                            	client.sendMessage(mail, P2Pname);
+                                    System.out.println("P2P connects successfully!");
+                                    String mail = in.next();
+                                    client.sendMessage(mail, P2Pname);
                             }
                             else
-                            	System.out.println("P2P connection error!");
+                                    System.out.println("P2P connection error!");
                     }
                     else{
                             System.out.println("Login error!");
