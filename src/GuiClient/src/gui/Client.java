@@ -461,8 +461,24 @@ public class Client{
     }
     
     /*leave P2P chat*/
-    public void leave_p2p() throws IOException{
-        
+    public void leave_p2p(String uname) throws IOException{
+        Set<Map.Entry<String, Socket>> allSet=chating_user_list.entrySet();
+        Iterator<Map.Entry<String, Socket>> iter=allSet.iterator();
+        Socket goalSocket = null;
+        while(iter.hasNext()){
+            Map.Entry<String, Socket> me=iter.next();
+            String temp = me.getKey();
+            if (uname.equals(temp)){
+                goalSocket = me.getValue();
+                iter.remove();
+                 break;
+            }
+        }
+        P2PLeave P2PLeaveProtocol = new P2PLeave(username);
+        DataOutputStream outTo = new DataOutputStream(goalSocket.getOutputStream());
+        outTo.writeUTF(P2PLeaveProtocol.getContent()+'\n');
+        outTo.flush();
+        goalSocket.close();
     }
 
     /*listen P2P socket*/
@@ -492,8 +508,7 @@ public class Client{
                             heartBeat(connectionSocket);
                             break;
                         case 2:
-                            status = leave_P2P_chating(sentence);
-                            flag = false;
+                            leave_P2P_chating(sentence);
                             break;
                         case 3:
                             System.out.println(sentence);
@@ -629,8 +644,23 @@ public class Client{
         }).start();
     }
     /*handle P2P leave*/
-    public String leave_P2P_chating(String sentence) throws IOException{
-        return "";
+    private void leave_P2P_chating(String sentence) throws IOException{
+        String []options = sentence.split("\r\n");
+        options = options[0].split(" ");
+        String leaveUser = options[2];
+        Set<Map.Entry<String, Socket>> allSet=chating_user_list.entrySet();
+        Iterator<Map.Entry<String, Socket>> iter=allSet.iterator();
+        Socket goalSocket = null;
+        while(iter.hasNext()){
+            Map.Entry<String, Socket> me=iter.next();
+            String temp = me.getKey();
+            if (leaveUser.equals(temp)){
+                goalSocket = me.getValue();
+                iter.remove();
+                 break;
+            }
+        }
+        goalSocket.close();
     } 
     
     class Check_Beat extends TimerTask{
