@@ -13,6 +13,13 @@ Run:
 **On Linux,there will be some problems with Chinese fonts, please refer to this link to**  
 **solve it http://wtz123.iteye.com/blog/1174159**  
 
+Environment Requiredment:  
+    Windows/Mac OS X/Linux  
+    Java JDK 1.6 or later  
+
+
+MainPage:  
+  http://laosiaudi.github.io/Minet
 ScreenShot:  
   ![github screen1](/images/screen1.png)  
   ![github screen2](/images/screen2.png)  
@@ -22,8 +29,6 @@ ScreenShot:
   ![github screen4](/images/screen6.png)  
 
 
-MainPage:  
-  http://laosiaudi.github.io/Minet
   
   
 ===  
