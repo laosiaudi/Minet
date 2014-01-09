@@ -1,12 +1,13 @@
-Minet
+**Minet**
 
 ===
 
 Computer Network Course Project  
   
 Run:  
-   Server: sh server.sh  
-   Client: sh client.sh  
+
+   Server: `sh server.sh`  
+   Client:`sh client.sh`  
    **IP address of Server is set to 127.0.0.1 by default**  
    **After you change the IP address, run rebuild.sh to rebuild it please**  
 
@@ -19,8 +20,11 @@ Environment Requiredment:
 
 
 MainPage:  
-  http://laosiaudi.github.io/Minet
-ScreenShot:  
+  *http://laosiaudi.github.io/Minet*   
+    
+    
+   
+  ScreenShot:  
   ![github screen1](/images/screen1.png)  
   ![github screen2](/images/screen2.png)  
   ![github screen3](/images/screen3.png)  
